@@ -119,7 +119,7 @@ function recursiveUpload($dir) {
 }
 # Help Function
 function printHelp() {
-	
+	echo "Usage: php_batch_uploader [-a AUTH] [-m MODE] dir";
 	echo "You need serious help\n";
 }
 # Upload the photo
