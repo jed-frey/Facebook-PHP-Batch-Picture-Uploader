@@ -15,7 +15,11 @@ Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
         php_batch_uploader -a AUTH
 	   
   -a    Facebook Authentication Code. Must be used the first time the script is run.
-            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to authorize php_batch_uploader and get code
+            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038
+            to authorize php_batch_uploader and generate code.
+
+            To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
+            http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload   
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name.[Default]
             2: Use the top level directory input as album name. Create caption based on subdirectories & image name
@@ -25,6 +29,9 @@ Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
             1: Display only errors which cause the script to exit.
             2: Display errors and warnings. [Default]
             3: Display everything. (When file is uploaded, etc)
+            4: Display everything w/time stamp when event occured.
+			5: Display everything w/time stamp since last message.
+			6: Debug. Display EVERYTHING w/time stamp since last message.
   
   dirs  Directories passed to script. These are the folders that are uploaded to facebook.
 

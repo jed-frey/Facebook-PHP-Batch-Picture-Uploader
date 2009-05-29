@@ -8,9 +8,6 @@ require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
 # Key and Secret. Used for the Facebook App.
 $key = "187d16837396c6d5ecb4b48b7b8fa038";
 $sec = "dc7a883649f0eac4f3caa8163b7e2a31";
-# Generate URLs for informational purposes.
-$url = "http://www.facebook.com/code_gen.php?v=1.0&api_key=$key";
-$url2 = "http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=photo_upload";
 # Parse input options
 $options = parseParameters();
 # Set defaults
@@ -34,7 +31,7 @@ if (array_key_exists("m", $options) && $options['m'] == "h") {
 disp("Init...", 7);
 if (array_key_exists("a", $options)) {
 	if ($options["a"] == 1) {
-		echo "You must give your athorization code.\nVisit $url to get one for php_batch_uploader.\n\n";
+		echo "You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n";
 		printHelp();
 		die();
 	}
@@ -45,7 +42,7 @@ if (array_key_exists("a", $options)) {
 		if (empty($auth)) throw new Exception('Empty Code.');
 	}
 	catch(Exception $e) {
-		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: $url", 1);
+		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 	}
 	disp("Executed code authorization.", 7);
 	// Store authorization code in authentication array
@@ -73,11 +70,11 @@ try {
 	if (empty($uid)) throw new Exception('Failed Auth.');
 	// Check if program is authorized to upload pictures
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
-		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads, visit $url2\n", 2);
+		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads, visit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
 	}
 }
 catch(Exception $e) {
-	disp("Could not login. Try creating a new auth code at $url.", 2);
+	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
 disp("Facebook Authorization.", 7);
 # Check if at least one folder was given
@@ -149,17 +146,16 @@ function recursiveUpload($dir) {
 }
 # Help Function
 function printHelp() {
-	# Get the helper URLs.
-	global $url;
 	$help = <<<EOF
-Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
-        php_batch_uploader -a AUTH
+Usage:  php_batch_uploader.php [-m MODE] [-v VERBOSITY] dirs
+        php_batch_uploader.php -a AUTH
 	   
   -a    Facebook Authentication Code. Must be used the first time the script is run.
-            Visit $url
+            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038
             to authorize php_batch_uploader and generate code.
 
-            To Authorize
+            To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
+            http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name.[Default]
             2: Use the top level directory input as album name. Create caption based on subdirectories & image name
@@ -180,8 +176,6 @@ EOF;
 	echo $help;
 }
 function printModeHelp() {
-	# Get the helper URLs.
-	global $url;
 	$help = <<<EOF
 Modes Explained:
     Each of the modes will recursively upload all images and folders in a given directory. 
