@@ -1,5 +1,6 @@
 #!/usr/bin/php
 <?
+$start_time = microtime(true);
 # Include required facebook include files.
 require_once ("facebook-platform/php/facebook.php");
 require_once ("facebook-platform/php/facebook_desktop.php");
@@ -11,13 +12,12 @@ $sec = "dc7a883649f0eac4f3caa8163b7e2a31";
 $url = "http://www.facebook.com/code_gen.php?v=1.0&api_key=$key";
 $url2 = "http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=photo_upload";
 # Parse input options
-$options=parseParameters();
+$options = parseParameters();
 # Set defaults
 # Set verbosity
-$verbosity=array_key_exists("v", $options)?intval($options["v"]):2;
+$verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 # Set the upload mode.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
-
 # Create new facebook object.
 if ($argc == 1) {
 	# If Arument list
@@ -27,10 +27,11 @@ Copyright: Copyright (C) 2009 Jedediah Frey\n\n";
 	die();
 }
 # If the user asks for mode help.
-if (array_key_exists("m", $options)&&$options['m']=="h") {
-    printModeHelp();
-    die();
+if (array_key_exists("m", $options) && $options['m'] == "h") {
+	printModeHelp();
+	die();
 }
+disp("Init...", 7);
 if (array_key_exists("a", $options)) {
 	if ($options["a"] == 1) {
 		echo "You must give your athorization code.\nVisit $url to get one for php_batch_uploader.\n\n";
@@ -44,13 +45,14 @@ if (array_key_exists("a", $options)) {
 		if (empty($auth)) throw new Exception('Empty Code.');
 	}
 	catch(Exception $e) {
-		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: $url",1);
+		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: $url", 1);
 	}
+	disp("Executed code authorization.", 7);
 	// Store authorization code in authentication array
 	$auth['code'] = $options["a"];
 	// Save to users home directory
 	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
-	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.",1);
+	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
 }
 // Check if authorization file exists.
 if (!is_file(getenv('HOME') . "/.facebook_auth")) {
@@ -60,6 +62,7 @@ if (!is_file(getenv('HOME') . "/.facebook_auth")) {
 }
 # Get saved authorization data.
 $auth = unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
+disp("Load saved session data. ", 7);
 # Try to login with auth programs
 try {
 	$fbo = new FacebookDesktop($key, $sec, true);
@@ -70,13 +73,15 @@ try {
 	if (empty($uid)) throw new Exception('Failed Auth.');
 	// Check if program is authorized to upload pictures
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
-		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads, visit $url2\n",2);
+		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads, visit $url2\n", 2);
 	}
-} catch(Exception $e) {
-	disp("Could not login. Try creating a new auth code at $url.",2);
 }
+catch(Exception $e) {
+	disp("Could not login. Try creating a new auth code at $url.", 2);
+}
+disp("Facebook Authorization.", 7);
 # Check if at least one folder was given
-if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.",1);
+if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
 # Generate a temp file where the thumbnails will be put before uploading.
 $temp_file = tempnam("/tmp", "fbi_");
 # For each input directory.
@@ -86,10 +91,11 @@ for ($i = 1;$i <= max(array_keys($options));$i++) {
 	$root_dir = $dir;
 	# Make sure that it is actually a directory
 	if (!is_dir($dir)) {
-		disp("Warning: $dir is not a directory. Skipping.",2);
+		disp("Warning: $dir is not a directory. Skipping.", 2);
 		continue;
 	}
 	# Start the recursive upload.
+	disp("Recursively uploading: $dir", 7);
 	recursiveUpload($dir);
 }
 # Exit function.
@@ -99,21 +105,38 @@ function recursiveUpload($dir) {
 	global $fbo;
 	# Scan the folder for directories and images
 	$result = folder_scan($dir);
+	disp("Scanned Folder: $dir", 7);
 	# If the number of images per directory is greater than 1.
 	if (count($result['images']) > 0) {
 		// Get current albums associated with the image
 		$aids = getAlbumId(getAlbumBase($result['images'][0]));
-		// Get pictures in all albums associated with the folder. In batch mode
-		$fbo->api_client->begin_batch();
-		for ($i = 0;$i < count($aids);$i++) {
-			$pictures[$i] = & $fbo->api_client->photos_get("", $aids[$i], "");
+		disp("Get Album ID", 7);
+		# If you have a large directory that you've already partially uploaded, you will hit the
+		# API request limit and have to take a time out.
+		$errors=1;
+		while (1) {
+			try {
+				# Get pictures in all albums associated with the folder. In batch mode
+				$fbo->api_client->begin_batch();
+				for ($i = 0;$i < count($aids);$i++) {
+					$pictures[$i] = & $fbo->api_client->photos_get("", $aids[$i], "");
+				}
+				$fbo->api_client->end_batch();
+				break;
+			}
+			catch(Exception $e) {
+				if ($errors>20) disp("Too many errors checking for photos.",1);
+				# Walk it off
+				sleep(5);
+				$errors++;
+			}
 		}
-		$fbo->api_client->end_batch();
+		disp("Build 'Seen Photos' Array.", 7);
 		# For each image
 		foreach($result['images'] as $image) {
 			# Check if the image already exists.
 			if (imageExists($pictures, $image)) {
-				disp("Image Exists:" . $image . " ... skipping",3);
+				disp("Image Exists:" . $image . " ... skipping", 3);
 			} else {
 				$aids = uploadImage($aids, $image);
 			}
@@ -128,7 +151,7 @@ function recursiveUpload($dir) {
 function printHelp() {
 	# Get the helper URLs.
 	global $url;
-    $help = <<<EOF
+	$help = <<<EOF
 Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
         php_batch_uploader -a AUTH
 	   
@@ -145,18 +168,21 @@ Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
             0: Display nothing, not even warnings or errors
             1: Display only errors which cause the script to exit.
             2: Display errors and warnings. [Default]
-            3: Display everything. (When file is uploaded, etc)
-  
+            3: Display everything. (When file is uploaded, when a file is skipped, errors & warnings)
+            4: Display everything w/time stamp when event occured.
+			5: Display everything w/time stamp since last message.
+			6: Debug. Display EVERYTHING w/time stamp since last message.
+			
   dirs  Directories passed to script. These are the folders that are uploaded to facebook.
-  
-  
+
+
 EOF;
 	echo $help;
 }
 function printModeHelp() {
 	# Get the helper URLs.
 	global $url;
-    $help = <<<EOF
+	$help = <<<EOF
 Modes Explained:
     Each of the modes will recursively upload all images and folders in a given directory. 
     The only way in which they differ is how the files are captioned and the album names that they are put into.
@@ -219,25 +245,29 @@ function uploadImage($aids, $image) {
 		try {
 			# Make the thumbnail.
 			makeThumb($image);
+			disp("Make Thumbnail: $image", 7);
 			# Get the album caption
 			$caption = getCaption($image);
 			# Upload the photo
 			$fbReturn = $fbo->api_client->photos_upload($temp_file, end($aids), $caption);
 			# If the image was uploaded successfully
-			disp("Uploaded: $image",2);
+			disp("Uploaded: $image", 2);
 			# Break the while loop
 			break;
 			# Catch exception
-		} catch(Exception $e) {
+			
+		}
+		catch(Exception $e) {
 			if ($e->getMessage() == "Album is full") {
 				# If the album is full, get a new album name & return album ids
 				$aids = getAlbumId(getAlbumBase($image));
 				# Give the uploader 2 chances to generate thumbnail and upload picture
+				
 			} elseif ($errors >= 2) {
 				# Display error and continue on
-				disp("Unexpected Error #$errors: " . $e->getMessage().", skipping $image",1);
+				disp("Unexpected Error #$errors: " . $e->getMessage() . ", skipping $image", 1);
 			} else {
-				disp("Unexpected Error #$errors: " . $e->getMessage(),2);
+				disp("Unexpected Error #$errors: " . $e->getMessage(), 2);
 				$errors++;
 				# Occasionally happens when there are too many API requests, slow it down.
 				sleep(2);
@@ -262,7 +292,7 @@ function getAlbumId($albumName, $description = "") {
 			# Check if album is full.
 			if ($albums[$i]['size'] == 200) {
 				// If the album is full, generate a new name.
-				disp("$albumName is full",2);
+				disp("$albumName is full", 2);
 				// Build $aid array of all aids associated with current Album Name.
 				$aids[] = $albums[$i]['aid'];
 				// Generate a new album name based on the current name
@@ -288,13 +318,13 @@ function getAlbumId($albumName, $description = "") {
 function getAlbumBase($image) {
 	global $root_dir, $mode;
 	if ($mode == 1) {
-		# Mode 1: Album name = folder image is in 
+		# Mode 1: Album name = folder image is in
 		$album_name = basename(dirname($image));
 	} elseif ($mode == 2) {
 		# Moded 2: Album name = root folder
 		$album_name = basename($root_dir);
 	} else {
-		disp("Invalid Mode",1);
+		disp("Invalid Mode", 1);
 	}
 	return $album_name;
 }
@@ -321,7 +351,7 @@ function getCaption($image) {
 		$dir_structure = explode('/', str_replace($root_dir . "/", "", $image));
 		$caption = pathinfo(implode($glue, $dir_structure), PATHINFO_FILENAME);
 	} else {
-		disp("Invalid Mode",1);
+		disp("Invalid Mode", 1);
 	}
 	return trim($caption);
 }
@@ -388,10 +418,18 @@ function parseParameters($noopt = array()) {
 	return $result;
 }
 # Display messages according to verbosity level.
-function disp($message,$level) {
+function disp($message, $level) {
 	global $verbosity;
-	if ($level<=$verbosity) echo($message."\n");
-	if ($level<=1) die("\n");
+	if ($level <= $verbosity) echo ($message);
+	if ($verbosity >= 4) echo " (" . getDuration($verbosity) . " s)";
+	echo "\n";
+	if ($level <= 1) die("\n");
+}
+function getDuration($verbosity) {
+	global $start_time;
+	$elapsed = round(microtime(true) - ($start_time), 3);
+	if ($verbosity >= 5) $start_time = microtime(true);
+	return $elapsed;
 }
 # Scan folder for images
 function folder_scan($dir) {
@@ -400,9 +438,8 @@ function folder_scan($dir) {
 	# Create arrays
 	$result['directories'] = Array();
 	$result['images'] = Array();
-	
 	# If the scan fails.
-	if (!($files = @scandir($dir))) disp("Failed scanning $dir",2);
+	if (!($files = @scandir($dir))) disp("Failed scanning $dir", 2);
 	# If there were files found.
 	if (count($files) > 0) {
 		foreach($files as $file) {
@@ -415,7 +452,7 @@ function folder_scan($dir) {
 				$result['directories'][] = $dir . $file;
 			}
 			# If the 'file' is an image file.
-			if (is_file($dir . $file) && hasExt($file, array('jpg', 'jpeg', 'png', 'gif','bmp','tif','tiff'))) {
+			if (is_file($dir . $file) && hasExt($file, array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff'))) {
 				$result['images'][] = $dir . $file;
 			}
 		}
