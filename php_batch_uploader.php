@@ -414,9 +414,8 @@ function parseParameters($noopt = array()) {
 # Display messages according to verbosity level.
 function disp($message, $level) {
 	global $verbosity;
-	if ($level <= $verbosity) echo ($message);
-	if ($verbosity >= 4) echo " (" . getDuration($verbosity) . " s)";
-	echo "\n";
+	if ($level <= $verbosity) echo ($message."\n");
+	if ($verbosity >= 4) echo " (" . getDuration($verbosity) . " s)\n";
 	if ($level <= 1) die("\n");
 }
 function getDuration($verbosity) {
