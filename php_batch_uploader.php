@@ -1,4 +1,4 @@
-#!/usr/bin/php
+#!/opt/local/bin/php
 <?
 $start_time = microtime(true);
 # Include required facebook include files.
