@@ -18,8 +18,8 @@ $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
 # Create new facebook object.
 if ($argc == 1) {
 	# If Arument list
-	echo "Version: php_batch_uploader http://exstatic.org/php_batch_uploader/
-Copyright: Copyright (C) 2009 Jedediah Frey\n\n";
+	echo "Version: php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
+Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n";
 	printHelp();
 	die();
 }
@@ -128,7 +128,7 @@ function recursiveUpload($dir) {
 				$errors++;
 			}
 		}
-		disp("Build 'Seen Photos' Array.", 7);
+		disp("Building 'Seen Photos' Array.", 7);
 		# For each image
 		foreach($result['images'] as $image) {
 			# Check if the image already exists.
@@ -373,7 +373,7 @@ function makeThumb($file) {
 	# Img quality
 	$quality = 80;
 	# Resize to max facebook photo size, why is it this size? Who the hell knows.
-	$resize = "604x604";
+	$resize = "720x720";
 	# Input File
 	$input = escapeshellarg($file);
 	# Output file.
