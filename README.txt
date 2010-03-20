@@ -1,17 +1,28 @@
 Requirements: 
 	php5 (http://php.net)
-	ImageMagick (http://www.imagemagick.org/script/index.php)
-		Graphics Magick also works, you will have to edit 
 	*NIX like OS (Linux, OS X, etc). Windows might work, but has not been tested.
+	Graphics Magick (http://www.graphicsmagick.org/) 
+		or
+	ImageMagick (http://www.imagemagick.org/)
+		apt-get install graphicsmagick | apt-get install imagemagick - Debian or Ubuntu
+		ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed.
 	Some command line knowledge.
 	
 Installation:
 	Move the php_batch_uploader folder to anywhere you wish.
-	1) Run the script directly: ./php_batch_uploader ~/Pictures/
-	2) Run the script through php: php php_batch_uploader ~/Pictures/
-	3) Add the php_batch_uploader directory to your PATH and run: cd ~/Pictures;php_batch_uploader ./
+	0) Open Terminal window and change to php_batch_uploader folder. (cd php_batch_uploader)
+	1) Download the latest version of the Facebook PHP client library: 
+		./getFacebookPHPlibrary.sh
+	2a) Run the script directly. You may have to edit the first line to point to your php install. `which php`
+		./php_batch_uploader ~/Pictures/
+	2b) Run the script through php. 
+		php php_batch_uploader ~/Pictures/
+	2c) Add the php_batch_uploader directory to your PATH and run.
+			# In the php_batch_uploader directory.
+			PATH=`pwd`:$PATH
+			cd ~/Pictures;php_batch_uploader ./
 	
-Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
+Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] directories
         php_batch_uploader -a AUTH
 	   
   -a    Facebook Authentication Code. Must be used the first time the script is run.
@@ -19,21 +30,23 @@ Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] dirs
             to authorize php_batch_uploader and generate code.
 
             To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
-            http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload   
+            http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload 
+  
   -m    Upload Mode.
-            1: Upload each directory & subdirectory as album name. Caption based on image name.[Default]
-            2: Use the top level directory input as album name. Create caption based on subdirectories & image name
+            1: Upload each directory & subdirectory as album name. Caption based on image name or EXIF caption. [Default]
+            2: Use the top level directory input as album name. Create caption based on subdirectories & image name or EXIF Caption.
             h: Display detailed information about how each of the modes works, with examples
+
   -v    Script verbosity.
             0: Display nothing, not even warnings or errors
             1: Display only errors which cause the script to exit.
             2: Display errors and warnings. [Default]
             3: Display everything. (When file is uploaded, etc)
-            4: Display everything w/time stamp when event occured.
+            4: Display everything w/time stamp when event occurred.
 			5: Display everything w/time stamp since last message.
-			6: Debug. Display EVERYTHING w/time stamp since last message.
+			6: Debug. Display everything  w/time stamp since last message.
   
-  dirs  Directories passed to script. These are the folders that are uploaded to facebook.
+  directories  Directories passed to script. These are the folders that are uploaded to Facebook.
 
 Modes Explained:
     Each of the modes will recursively upload all images and folders in a given directory. 
@@ -41,10 +54,10 @@ Modes Explained:
 
     Mode 1 (-m 1):
         Uses the directory that the file is in as the Album Name. 
-        The image is then captioned as the image name, minus extension.
+        The image is then captioned as the image name minus extension or EXIF Caption.
     Mode 2 (-m 2):
         Uses the directory(s) passed to the script as the as Album Name. 
-        The image is then captioned with the relative path to the image and the image, minus extension.
+        The image is then captioned with the relative path to the image and the image minus extension or EXIF Caption.
 
     Example, for the sample folder structure below:
         1) ~/pictures/2008/Road Trips/Road Trip#.jpg, etc
@@ -75,13 +88,13 @@ Modes Explained:
         if you had a 2008/Road Trips/1.jpg & 2009/Roadtrips/1.jpg, the second image will be skipped 
         because the script thinks it's the same picture.
 
-    Beware of how your shell script interpets inputs for mode 2
+    Beware of how your shell script interprets inputs for mode 2
         For example, in bash,  php_batch_uploader ~/pictures/ & php_batch_uploader ~/pictures/* are not the same.
         In the first,  1 argument (~/pictures/) is passed to the script, so the Album Name in Mode 2 will be "pictures"
         In the second, 2 arguments (~/pictures/2008,~/pictures/2009) are passed and albums in the example will be created.
 
         In Mode 1, there won't be any difference (unless you have pictures in the root folder ~/pictures, then an Album "pictures" will be created)
 
-    When the facebook limit of 200 photos is reached. The album name is suffixed with a number sign and a number starting at 2.
-        "Spring Break" becomes "Spring Break #2" then "Spring Break #3", so on and so forth.
+    When the Facebook limit of 200 photos is reached. The album name is suffixed with a number sign and a number starting at 2.
+        "Spring Break" becomes "Spring Break #2" for photos 201-400 then "Spring Break #3" for 401-600 so on and so forth.
   

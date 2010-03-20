@@ -36,7 +36,7 @@ if (array_key_exists("m", $options) && $options['m'] == "h") {
 	printModeHelp();
 	die();
 }
-disp("Init...", 7);
+disp("Init...", 6);
 if (array_key_exists("a", $options)) {
 	if ($options["a"] == 1) {
 		echo "You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n";
@@ -51,7 +51,7 @@ if (array_key_exists("a", $options)) {
 	} catch(Exception $e) {
 		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 	}
-	disp("Executed code authorization.", 7);
+	disp("Executed code authorization.", 6);
 	// Store authorization code in authentication array
 	$auth['code'] = $options["a"];
 	// Save to users home directory
@@ -66,7 +66,7 @@ if (!is_file(getenv('HOME') . "/.facebook_auth")) {
 }
 # Get saved authorization data.
 $auth = unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
-disp("Load saved session data. ", 7);
+disp("Load saved session data. ", 6);
 # Try to login with auth programs
 try {
 	$fbo = new FacebookDesktop($key, $sec, true);
@@ -82,7 +82,7 @@ try {
 } catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
-disp("Facebook Authorization.", 7);
+disp("Facebook Authorization.", 6);
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
 # Generate a temp file where the thumbnails will be put before uploading.
@@ -91,14 +91,14 @@ $temp_file = tempnam("/tmp", "fbi_");
 for ($i = 1;$i <= max(array_keys($options));$i++) {
 	# Get full path of the directory w/ trailing slash.
 	$dir = realpath($options[$i]);
+	disp("Real directory: $dir",6);
+	# Set the directory as the root directory so that everything is calculated relative to that.
 	$root_dir = $dir;
-	# Make sure that it is actually a directory
+	# Make sure that it is actually a directory and not a file.
 	if (!is_dir($dir)) {
 		disp("Warning: $dir is not a directory. Skipping.", 2);
 		continue;
 	}
-	# Start the recursive upload.
-	disp("Recursively uploading: $dir", 7);
 	recursiveUpload($dir);
 }
 # Exit function.
@@ -106,14 +106,15 @@ die;
 # Recursively upload photos
 function recursiveUpload($dir) {
 	global $fbo;
+	# Start the recursive upload.
+	disp("Recursively uploading: $dir", 6);
 	# Scan the folder for directories and images
 	$result = folder_scan($dir);
-	disp("Scanned Folder: $dir", 7);
 	# If the number of images per directory is greater than 1.
 	if (count($result['images']) > 0) {
 		// Get current albums associated with the image
 		$aids = getAlbumId(getAlbumBase($result['images'][0]));
-		disp("Get Album ID", 7);
+		disp("Get Album ID", 6);
 		# If you have a large directory that you've already partially uploaded, you will hit the
 		# API request limit and have to take a time out.
 		$errors=1;
@@ -134,7 +135,7 @@ function recursiveUpload($dir) {
 				$errors++;
 			}
 		}
-		disp("Building 'Seen Photos' Array.", 7);
+		disp("Building 'Seen Photos' Array.", 6);
 		# For each image
 		foreach($result['images'] as $image) {
 			# Check if the image already exists.
@@ -172,9 +173,9 @@ Usage:  php_batch_uploader.php [-m MODE] [-v VERBOSITY] dirs
             1: Display only errors which cause the script to exit.
             2: Display errors and warnings. [Default]
             3: Display everything. (When file is uploaded, when a file is skipped, errors & warnings)
-            4: Display everything w/time stamp when event occured.
+            4: Display everything w/time stamp when event occured since script start.
 			5: Display everything w/time stamp since last message.
-			6: Debug. Display EVERYTHING w/time stamp since last message.
+			6: Debug. Display debug w/time stamp since last message.
 			
   dirs  Directories passed to script. These are the folders that are uploaded to facebook.
 
@@ -246,11 +247,10 @@ function uploadImage($aids, $image) {
 		try {
 			# Make the thumbnail.
 			makeThumb($image);
-			disp("Make Thumbnail: $image", 7);
 			# Get the album caption
 			$caption = getCaption($image);
 			# Upload the photo
-			$fbReturn = $fbo->api_client->photos_upload($temp_file, end($aids), $caption);
+			#$fbReturn = $fbo->api_client->photos_upload($temp_file, end($aids), $caption);
 			# If the image was uploaded successfully
 			disp("Uploaded: $image", 2);
 			# Break the while loop
@@ -312,6 +312,7 @@ function getAlbumId($albumName, $description = "") {
 	}
 	// If the album isn't found,  create it.
 	$album = $fbo->api_client->photos_createAlbum($albumName, $description, "", "friends");
+	disp("Create Album: $albumName ($description)",5);
 	$aids[] = $album['aid'];
 	return $aids;
 }
@@ -339,6 +340,7 @@ function genAlbumName($albumName) {
 		// Else, album name is #2.
 		$newName = $albumName . " #2";
 	}
+	disp("Generated new album name $newName from $albumName",6);
 	// Return the new name
 	return $newName;
 }
@@ -354,7 +356,10 @@ function getCaption($image) {
 	} else {
 		disp("Invalid Mode", 1);
 	}
-	return trim($caption);
+	var_dump(exif_read_data($image));die;
+	$caption=trim($caption);
+	disp("Got Caption: $caption for $image",6);
+	return $caption;
 }
 # Check if an image exists already in a list of images
 function imageExists($pictures, $new_picture) {
@@ -376,6 +381,7 @@ function imageExists($pictures, $new_picture) {
 }
 # Make Thumbnails
 function makeThumb($file) {
+	disp("Make Thumbnail: $file", 6);
 	global $temp_file, $converter;
 	# Img quality
 	$quality = 80;
@@ -387,23 +393,32 @@ function makeThumb($file) {
 	$output = escapeshellarg($temp_file);
 	# Create the temporary thumbnail.
 	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
+	disp($command, 6);
 	exec($command);
 }
+
 # Display messages according to verbosity level.
 function disp($message, $level) {
-	global $verbosity;
-	if ($level <= $verbosity) echo ($message."\n");
-	if ($verbosity >= 4) echo " (" . getDuration($verbosity) . " s)\n";
+	global $verbosity; # Get verbrosity level.
+	# If the level of the message is less than the vebrosity level, display the message.
+	# If verbrosity level >=4, display the duration
+	$message=(($verbosity >= 4&&$level <= $verbosity)?" (" . getDuration($verbosity) . " s) ":"").(($level <= $verbosity)?$message:"");
+	echo empty($message)?"":$message."\n";
 	if ($level <= 1) die("\n");
 }
+
+# Calculate diration between events.
 function getDuration($verbosity) {
 	global $start_time;
 	$elapsed = round(microtime(true) - ($start_time), 3);
+	# For verbrosity <5, just display time since the beginning. For vebrosity >=5, show elapsed time between events.
 	if ($verbosity >= 5) $start_time = microtime(true);
 	return $elapsed;
 }
+
 # Scan folder for images
 function folder_scan($dir) {
+	disp("Scanning Folder: $dir", 6);
 	// Add trailing slash to directory
 	$dir = substr($dir, -1) == "/" ? $dir : $dir . "/";
 	# Create arrays
@@ -431,6 +446,7 @@ function folder_scan($dir) {
 	#Return result
 	return $result;
 }
+
 # Determine if file has an extension.
 function hasExt($file, $findExt) {
 	if (!is_array($findExt)) {
@@ -442,7 +458,7 @@ function hasExt($file, $findExt) {
 
 # Find the conversion utility.
 function getConverter($path=NULL) {
-	disp("Finding image converter.", 7);
+	disp("Finding image converter.", 6);
 	global $converter;
 	$gm=exec("which gm");
 	$im=exec("which convert");
@@ -463,7 +479,6 @@ function getConverter($path=NULL) {
 		$converter=$path;	
 	}
 }
-
 
 # Parse input parameters. Taken from the comments on the getopts page.
 function parseParameters($noopt = array()) {
