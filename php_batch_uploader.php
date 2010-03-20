@@ -1,5 +1,10 @@
 #!/opt/local/bin/php
-<?
+<?php
+$converterPath=NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
+####
+# Here Be Dragons.
+####
+error_reporting(E_ALL | !E_STRICT);
 $start_time = microtime(true);
 # Include required facebook include files.
 require_once ("facebook-platform/php/facebook.php");
@@ -15,6 +20,9 @@ $options = parseParameters();
 $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 # Set the upload mode.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
+# Get the image converter to use.
+getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
+
 # Create new facebook object.
 if ($argc == 1) {
 	# If Arument list
@@ -40,8 +48,7 @@ if (array_key_exists("a", $options)) {
 	try {
 		$auth = $fbo->do_get_session($options["a"]);
 		if (empty($auth)) throw new Exception('Empty Code.');
-	}
-	catch(Exception $e) {
+	} catch(Exception $e) {
 		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 	}
 	disp("Executed code authorization.", 7);
@@ -70,10 +77,9 @@ try {
 	if (empty($uid)) throw new Exception('Failed Auth.');
 	// Check if program is authorized to upload pictures
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
-		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads, visit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
+		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
 	}
-}
-catch(Exception $e) {
+} catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
 disp("Facebook Authorization.", 7);
@@ -154,7 +160,8 @@ Usage:  php_batch_uploader.php [-m MODE] [-v VERBOSITY] dirs
             Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038
             to authorize php_batch_uploader and generate code.
 
-            To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
+            To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access.
+			This can be granted here:
             http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name.[Default]
@@ -284,7 +291,7 @@ function getAlbumId($albumName, $description = "") {
 		# If the album name is the same as the current increment album
 		if ($albums[$i]['name'] == $albumName) {
 			# Check if album is full.
-			if ($albums[$i]['size'] == 200) {
+			if ($albums[$i]['size'] >= 200) { # Limit of 200 photos per album.
 				// If the album is full, generate a new name.
 				disp("$albumName is full", 2);
 				// Build $aid array of all aids associated with current Album Name.
@@ -318,7 +325,7 @@ function getAlbumBase($image) {
 		# Moded 2: Album name = root folder
 		$album_name = basename($root_dir);
 	} else {
-		disp("Invalid Mode", 1);
+		disp("Invalid Mode: $mode", 1);
 	}
 	return $album_name;
 }
@@ -369,7 +376,7 @@ function imageExists($pictures, $new_picture) {
 }
 # Make Thumbnails
 function makeThumb($file) {
-	global $temp_file;
+	global $temp_file, $converter;
 	# Img quality
 	$quality = 80;
 	# Resize to max facebook photo size, why is it this size? Who the hell knows.
@@ -379,37 +386,8 @@ function makeThumb($file) {
 	# Output file.
 	$output = escapeshellarg($temp_file);
 	# Create the temporary thumbnail.
-	$command = "convert -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
+	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
 	exec($command);
-}
-# Parse input parameters. Stolen from the comments on the getopts page.
-function parseParameters($noopt = array()) {
-	$result = array();
-	$params = $GLOBALS['argv'];
-	// could use getopt() here (since PHP 5.3.0), but it doesn't work relyingly
-	reset($params);
-	while (list($tmp, $p) = each($params)) {
-		if ($p{0} == '-') {
-			$pname = substr($p, 1);
-			$value = true;
-			if ($pname{0} == '-') {
-				// long-opt (--<param>)
-				$pname = substr($pname, 1);
-				if (strpos($p, '=') !== false) {
-					// value specified inline (--<param>=<value>)
-					list($pname, $value) = explode('=', substr($p, 2), 2);
-				}
-			}
-			// check if next parameter is a descriptor or a value
-			$nextparm = current($params);
-			if (!in_array($pname, $noopt) && $value === true && $nextparm !== false && $nextparm{0} != '-') list($tmp, $value) = each($params);
-			$result[$pname] = $value;
-		} else {
-			// param doesn't belong to any option
-			$result[] = $p;
-		}
-	}
-	return $result;
 }
 # Display messages according to verbosity level.
 function disp($message, $level) {
@@ -461,4 +439,58 @@ function hasExt($file, $findExt) {
 	$ext = end(explode(".", $file));
 	return in_array(strtolower($ext), $findExt);
 }
-?>
+
+# Find the conversion utility.
+function getConverter($path=NULL) {
+	disp("Finding image converter.", 7);
+	global $converter;
+	$gm=exec("which gm");
+	$im=exec("which convert");
+	if (is_null($path)) {
+		if (!empty($gm)) {
+			$converter="$gm convert";
+			disp("Found GraphicsMagic, using $gm",3);
+		} elseif (!empty($im)) {
+			$converter=$gm;
+			disp("Found ImageMagick, using $gm",3);
+		} else {
+			disp("No suitable image converter found. Specify one with -c on the command line or\ninstall Image or GraphicsMagick and make sure that the executable location is added to your PATH.",1);	
+		}
+	} else {
+		if (!is_executable($path)) {
+			disp("$path is not executable. Please specify one with -c",1);	
+		}
+		$converter=$path;	
+	}
+}
+
+
+# Parse input parameters. Taken from the comments on the getopts page.
+function parseParameters($noopt = array()) {
+	$result = array();
+	$params = $GLOBALS['argv'];
+	// could use getopt() here (since PHP 5.3.0), but it doesn't work relyingly
+	reset($params);
+	while (list($tmp, $p) = each($params)) {
+		if ($p{0} == '-') {
+			$pname = substr($p, 1);
+			$value = true;
+			if ($pname{0} == '-') {
+				// long-opt (--<param>)
+				$pname = substr($pname, 1);
+				if (strpos($p, '=') !== false) {
+					// value specified inline (--<param>=<value>)
+					list($pname, $value) = explode('=', substr($p, 2), 2);
+				}
+			}
+			// check if next parameter is a descriptor or a value
+			$nextparm = current($params);
+			if (!in_array($pname, $noopt) && $value === true && $nextparm !== false && $nextparm{0} != '-') list($tmp, $value) = each($params);
+			$result[$pname] = $value;
+		} else {
+			// param doesn't belong to any option
+			$result[] = $p;
+		}
+	}
+	return $result;
+}
