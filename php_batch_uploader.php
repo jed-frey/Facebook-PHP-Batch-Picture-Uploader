@@ -1,5 +1,6 @@
 #!/opt/local/bin/php
 <?php
+
 $converterPath=NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
 ####
 # Here Be Dragons.
@@ -356,7 +357,6 @@ function getCaption($image) {
 	} else {
 		disp("Invalid Mode", 1);
 	}
-	var_dump(exif_read_data($image));die;
 	$caption=trim($caption);
 	disp("Got Caption: $caption for $image",6);
 	return $caption;
@@ -394,7 +394,13 @@ function makeThumb($file) {
 	# Create the temporary thumbnail.
 	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
 	disp($command, 6);
-	exec($command);
+	$descriptorspec = array(
+	   0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+	   1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
+	   2 => array("file", "/tmp/error-output.txt", "a") // stderr is a file to write to
+	);
+	$return=proc_open($command,$descriptorspec, $pipes);
+	#exec($command);
 }
 
 # Display messages according to verbosity level.
