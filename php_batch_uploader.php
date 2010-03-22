@@ -1,7 +1,6 @@
 #!/opt/local/bin/php
 <?php
-
-$converterPath=NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
+$converterPath = NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
 ####
 # Here Be Dragons.
 ####
@@ -23,7 +22,6 @@ $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
-
 # Create new facebook object.
 if ($argc == 1) {
 	# If Arument list
@@ -49,7 +47,8 @@ if (array_key_exists("a", $options)) {
 	try {
 		$auth = $fbo->do_get_session($options["a"]);
 		if (empty($auth)) throw new Exception('Empty Code.');
-	} catch(Exception $e) {
+	}
+	catch(Exception $e) {
 		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 	}
 	disp("Executed code authorization.", 6);
@@ -80,7 +79,8 @@ try {
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
 		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
 	}
-} catch(Exception $e) {
+}
+catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
 disp("Facebook Authorization.", 6);
@@ -92,7 +92,7 @@ $temp_file = tempnam("/tmp", "fbi_");
 for ($i = 1;$i <= max(array_keys($options));$i++) {
 	# Get full path of the directory w/ trailing slash.
 	$dir = realpath($options[$i]);
-	disp("Real directory: $dir",6);
+	disp("Real directory: $dir", 6);
 	# Set the directory as the root directory so that everything is calculated relative to that.
 	$root_dir = $dir;
 	# Make sure that it is actually a directory and not a file.
@@ -111,14 +111,14 @@ function recursiveUpload($dir) {
 	disp("Recursively uploading: $dir", 6);
 	# Scan the folder for directories and images
 	$result = folder_scan($dir);
-	# If the number of images per directory is greater than 1.
+	# If the number of images in directory is greater than 1.
 	if (count($result['images']) > 0) {
 		// Get current albums associated with the image
 		$aids = getAlbumId(getAlbumBase($result['images'][0]));
 		disp("Get Album ID", 6);
 		# If you have a large directory that you've already partially uploaded, you will hit the
 		# API request limit and have to take a time out.
-		$errors=1;
+		$errors = 1;
 		while (1) {
 			try {
 				# Get pictures in all albums associated with the folder. In batch mode
@@ -130,7 +130,7 @@ function recursiveUpload($dir) {
 				break;
 			}
 			catch(Exception $e) {
-				if ($errors>20) disp("Too many errors checking for photos.",1);
+				if ($errors > 20) disp("Too many errors checking for photos.", 1);
 				# Walk it off
 				sleep(5);
 				$errors++;
@@ -143,14 +143,52 @@ function recursiveUpload($dir) {
 			if (imageExists($pictures, $image)) {
 				disp("Image Exists:" . $image . " ... skipping", 3);
 			} else {
-				$aids = uploadImage($aids, $image);
+				$imagesToUpload[] = $image;
 			}
 		}
+		$batchSize = 10;
+		$c = count($imagesToUpload);
+		for ($i = 0;$i < $c;$i+= $batchSize) {
+			for ($j = 0;($j < $batchSize & ($j + $i) < $c);$j++) {
+				$k = $i + $j;
+				list($process[$j], $images[$j]) = makeThumb($imagesToUpload[$k]);
+			}
+			$batch=batchPrep($images);
+			print_r($process);
+			die;
+			waitToProcess($process);
+			uploadImages($process);
+			die;
+		}
+		die;
+		$aids = uploadImage($aids, $image);
 	}
 	# For each directory. Recursively upload photos
 	foreach($result['directories'] as $dir) {
 		recursiveUpload($dir);
 	}
+}
+
+function batchPrep($images) {
+	
+	
+}
+
+# Wait for all thumbnail processing threads to finish.
+function waitToProcess($procs) {
+	do {
+		# Set the count of running processes to 0.
+		$running = 0;
+		# For each process
+		foreach($procs as $proc) {
+			# Get process status
+			$r = proc_get_status($proc);
+			# Increment the number of running threads.
+			if ($r["running"]) $running++;
+		}
+	}
+	while ($running != 0); # While the number running process isn't 0, keep checking.
+	
 }
 # Help Function
 function printHelp() {
@@ -240,6 +278,8 @@ Modes Explained:
 EOF;
 	echo $help;
 }
+function uploadImages($images) {
+}
 # Upload the photo
 function uploadImage($aids, $image) {
 	global $fbo, $temp_file;
@@ -247,7 +287,6 @@ function uploadImage($aids, $image) {
 	while (1) {
 		try {
 			# Make the thumbnail.
-			makeThumb($image);
 			# Get the album caption
 			$caption = getCaption($image);
 			# Upload the photo
@@ -313,7 +352,7 @@ function getAlbumId($albumName, $description = "") {
 	}
 	// If the album isn't found,  create it.
 	$album = $fbo->api_client->photos_createAlbum($albumName, $description, "", "friends");
-	disp("Create Album: $albumName ($description)",5);
+	disp("Create Album: $albumName ($description)", 5);
 	$aids[] = $album['aid'];
 	return $aids;
 }
@@ -341,7 +380,7 @@ function genAlbumName($albumName) {
 		// Else, album name is #2.
 		$newName = $albumName . " #2";
 	}
-	disp("Generated new album name $newName from $albumName",6);
+	disp("Generated new album name $newName from $albumName", 6);
 	// Return the new name
 	return $newName;
 }
@@ -357,8 +396,8 @@ function getCaption($image) {
 	} else {
 		disp("Invalid Mode", 1);
 	}
-	$caption=trim($caption);
-	disp("Got Caption: $caption for $image",6);
+	$caption = trim($caption);
+	disp("Got Caption: $caption for $image", 6);
 	return $caption;
 }
 # Check if an image exists already in a list of images
@@ -394,25 +433,23 @@ function makeThumb($file) {
 	# Create the temporary thumbnail.
 	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
 	disp($command, 6);
-	$descriptorspec = array(
-	   0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
-	   1 => array("pipe", "w"),  // stdout is a pipe that the child will write to
-	   2 => array("file", "/tmp/error-output.txt", "a") // stderr is a file to write to
+	$descriptorspec = array(0 => array("pipe", "r"), // stdin is a pipe that the child will read from
+	1 => array("pipe", "w"), // stdout is a pipe that the child will write to
+	2 => array("file", "/tmp/error-output.txt", "a") // stderr is a file to write to
 	);
-	$return=proc_open($command,$descriptorspec, $pipes);
-	#exec($command);
+	$ret[0] = proc_open($command, $descriptorspec, $pipes);
+	$ret[1] = array("original"=>$file,"thumb"=>$output);
+	return $ret;
 }
-
 # Display messages according to verbosity level.
 function disp($message, $level) {
 	global $verbosity; # Get verbrosity level.
 	# If the level of the message is less than the vebrosity level, display the message.
 	# If verbrosity level >=4, display the duration
-	$message=(($verbosity >= 4&&$level <= $verbosity)?" (" . getDuration($verbosity) . " s) ":"").(($level <= $verbosity)?$message:"");
-	echo empty($message)?"":$message."\n";
+	$message = (($verbosity >= 4 && $level <= $verbosity) ? " (" . getDuration($verbosity) . " s) " : "") . (($level <= $verbosity) ? $message : "");
+	echo empty($message) ? "" : $message . "\n";
 	if ($level <= 1) die("\n");
 }
-
 # Calculate diration between events.
 function getDuration($verbosity) {
 	global $start_time;
@@ -421,7 +458,6 @@ function getDuration($verbosity) {
 	if ($verbosity >= 5) $start_time = microtime(true);
 	return $elapsed;
 }
-
 # Scan folder for images
 function folder_scan($dir) {
 	disp("Scanning Folder: $dir", 6);
@@ -452,7 +488,6 @@ function folder_scan($dir) {
 	#Return result
 	return $result;
 }
-
 # Determine if file has an extension.
 function hasExt($file, $findExt) {
 	if (!is_array($findExt)) {
@@ -461,31 +496,29 @@ function hasExt($file, $findExt) {
 	$ext = end(explode(".", $file));
 	return in_array(strtolower($ext), $findExt);
 }
-
 # Find the conversion utility.
-function getConverter($path=NULL) {
+function getConverter($path = NULL) {
 	disp("Finding image converter.", 6);
 	global $converter;
-	$gm=exec("which gm");
-	$im=exec("which convert");
+	$gm = exec("which gm");
+	$im = exec("which convert");
 	if (is_null($path)) {
 		if (!empty($gm)) {
-			$converter="$gm convert";
-			disp("Found GraphicsMagic, using $gm",3);
+			$converter = "$gm convert";
+			disp("Found GraphicsMagic, using $gm", 3);
 		} elseif (!empty($im)) {
-			$converter=$gm;
-			disp("Found ImageMagick, using $gm",3);
+			$converter = $gm;
+			disp("Found ImageMagick, using $gm", 3);
 		} else {
-			disp("No suitable image converter found. Specify one with -c on the command line or\ninstall Image or GraphicsMagick and make sure that the executable location is added to your PATH.",1);	
+			disp("No suitable image converter found. Specify one with -c on the command line or\ninstall Image or GraphicsMagick and make sure that the executable location is added to your PATH.", 1);
 		}
 	} else {
 		if (!is_executable($path)) {
-			disp("$path is not executable. Please specify one with -c",1);	
+			disp("$path is not executable. Please specify one with -c", 1);
 		}
-		$converter=$path;	
+		$converter = $path;
 	}
 }
-
 # Parse input parameters. Taken from the comments on the getopts page.
 function parseParameters($noopt = array()) {
 	$result = array();
