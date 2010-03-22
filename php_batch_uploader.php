@@ -1,5 +1,7 @@
 #!/opt/local/bin/php
 <?php
+# Master
+
 $converterPath=NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
 ####
 # Here Be Dragons.
