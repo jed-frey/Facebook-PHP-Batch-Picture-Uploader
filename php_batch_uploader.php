@@ -389,6 +389,7 @@ function genAlbumName($albumName) {
 }
 #
 function getCaption($image) {
+
 	global $root_dir, $mode;
 	if ($mode == 1) {
 		$caption = pathinfo($image, PATHINFO_FILENAME);
@@ -403,7 +404,10 @@ function getCaption($image) {
 	disp("Got Caption: $caption for $image", 6);
 	return $caption;
 }
-# Check if an image exists already in a list of images
+# imageExists
+# Check if a picture already exists in a list of pictures
+# Input: $pictures    - Pictures aray from FaceBook's photos.get method
+#        $new_picture - Absolute path to the new photo to be checked.
 function imageExists($pictures, $new_picture) {
 	# Make sure the picture array is actually one
 	if (!is_array($pictures[0]) || empty($pictures[0])) {
