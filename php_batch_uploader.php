@@ -89,8 +89,6 @@ catch(Exception $e) {
 disp("Facebook Authorization.", 6);
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
-# Generate a temp file where the thumbnails will be put before uploading.
-$temp_file = tempnam("/tmp", "fbi_");
 # For each input directory.
 for ($i = 1;$i <= max(array_keys($options));$i++) {
 	# Get full path of the directory w/ trailing slash.
@@ -406,7 +404,7 @@ function getCaption($image) {
 }
 # imageExists
 # Check if a picture already exists in a list of pictures
-# Input: $pictures    - Pictures aray from FaceBook's photos.get method
+# Input: $pictures    - Pictures array from FaceBook's photos.get method
 #        $new_picture - Absolute path to the new photo to be checked.
 # Output: bool - True if picture exists. False if picture does not exist.
 function imageExists($pictures, $new_picture) {
@@ -426,45 +424,35 @@ function imageExists($pictures, $new_picture) {
 	}
 	return false;
 }
-# Make Thumbnails
-function makeThumb($file) {
+
+# makeThumb
+# 	Create a thumbnail of a photo in batch mode. Will create a new process with proc_open
+# Input: $file - Absolute path to the new photo to have a thumb created
+# Output: Array[0] proc_open resource.
+#		  Array[1] Associative array with the [original] file and [thumb]nail being generated. 
+function makeThumbBatch($file) {
 	disp("Make Thumbnail: $file", 6);
-	global $temp_file, $converter;
-	# Img quality
+	# global variable for converter.
+	global $converter;
+	# Generate a temp file where the thumbnails will be put before uploading.
+	$temp_file = tempnam("/tmp", "fbi_");
+	# image quality
 	$quality = 80;
-	# Resize to max facebook photo size, why is it this size? Who the hell knows.
+	# Resize to max facebook photo size.
 	$resize = "720x720";
 	# Input File
 	$input = escapeshellarg($file);
 	# Output file.
 	$output = escapeshellarg($temp_file);
-	# Create the temporary thumbnail.
+	# create command to create thumbnail
 	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
 	disp($command, 6);
-	$descriptorspec = array(0 => array("pipe", "r"), // stdin is a pipe that the child will read from
-	1 => array("pipe", "w"), // stdout is a pipe that the child will write to
-	2 => array("file", "/tmp/error-output.txt", "a") // stderr is a file to write to
-	);
+	$descriptorspec = array(0 => array("file", "/dev/null", "r"),1 => array("file", "/dev/null", "w"),2 => array("file", "/dev/null", "a"));
+	# Fork process
 	$ret[0] = proc_open($command, $descriptorspec, $pipes);
 	$ret[1] = array("original"=>$file,"thumb"=>$output);
+	# Return output.
 	return $ret;
-}
-# Display messages according to verbosity level.
-function disp($message, $level) {
-	global $verbosity; # Get verbrosity level.
-	# If the level of the message is less than the vebrosity level, display the message.
-	# If verbrosity level >=4, display the duration
-	$message = (($verbosity >= 4 && $level <= $verbosity) ? " (" . getDuration($verbosity) . " s) " : "") . (($level <= $verbosity) ? $message : "");
-	echo empty($message) ? "" : $message . "\n";
-	if ($level <= 1) die("\n");
-}
-# Calculate diration between events.
-function getDuration($verbosity) {
-	global $start_time;
-	$elapsed = round(microtime(true) - ($start_time), 3);
-	# For verbrosity <5, just display time since the beginning. For vebrosity >=5, show elapsed time between events.
-	if ($verbosity >= 5) $start_time = microtime(true);
-	return $elapsed;
 }
 # Scan folder for images
 function folder_scan($dir) {
@@ -498,36 +486,48 @@ function folder_scan($dir) {
 }
 # Determine if file has an extension.
 function hasExt($file, $findExt) {
+
+# getConverter
 	if (!is_array($findExt)) {
 		$findExt = array($findExt);
 	}
 	$ext = end(explode(".", $file));
 	return in_array(strtolower($ext), $findExt);
 }
-# Find the conversion utility.
+# Find the conversion utility. (Image Magick or Graphics Magick)
+# Input: $path - specified path to converter.
+# Output: path to converter is assigned to $converter global.
 function getConverter($path = NULL) {
 	disp("Finding image converter.", 6);
 	global $converter;
-	$gm = exec("which gm");
-	$im = exec("which convert");
+	# If a path isn't specified.
 	if (is_null($path)) {
+		# Attempt to find graphics magic and image magick
+		$gm = exec("which gm");
+		$im = exec("which convert");
+		# Specify converter, prefer graphics magick.
 		if (!empty($gm)) {
 			$converter = "$gm convert";
 			disp("Found GraphicsMagic, using $gm", 3);
 		} elseif (!empty($im)) {
-			$converter = $gm;
-			disp("Found ImageMagick, using $gm", 3);
+			$converter = $im;
+			disp("Found ImageMagick, using $im", 3);
 		} else {
 			disp("No suitable image converter found. Specify one with -c on the command line or\ninstall Image or GraphicsMagick and make sure that the executable location is added to your PATH.", 1);
 		}
 	} else {
+		# If path isn't executable
 		if (!is_executable($path)) {
 			disp("$path is not executable. Please specify one with -c", 1);
 		}
 		$converter = $path;
 	}
 }
+
+# parseParameters
 # Parse input parameters. Taken from the comments on the getopts page.
+# Input: nothing
+# Output: array of input parameters
 function parseParameters($noopt = array()) {
 	$result = array();
 	$params = $GLOBALS['argv'];
@@ -555,4 +555,28 @@ function parseParameters($noopt = array()) {
 		}
 	}
 	return $result;
+}
+
+# disp
+# 	Display messages according to verbosity level. Any message with a level <=1 will cause the program to exit
+# Input: $message message to display
+#		 $level display level of message. If verbrosity is >= to the display level, the message will be displayed
+function disp($message, $level) {
+	global $verbosity; # Get verbrosity level.
+	# If the level of the message is less than the vebrosity level, display the message.
+	# If verbrosity level >=4, display the duration
+	$message = (($verbosity >= 4 && $level <= $verbosity) ? " (" . getDuration($verbosity) . " s) " : "") . (($level <= $verbosity) ? $message : "");
+	echo empty($message) ? "" : $message . "\n";
+	if ($level <= 1) die("\n");
+}
+
+# getDuration
+# 	Calculate diration between events.
+# Input: verbrosity
+function getDuration($verbosity) {
+	global $start_time;
+	$elapsed = round(microtime(true) - ($start_time), 3);
+	# For verbrosity <5, just display time since the beginning. For vebrosity >=5, show elapsed time between events.
+	if ($verbosity >= 5) $start_time = microtime(true);
+	return $elapsed;
 }
