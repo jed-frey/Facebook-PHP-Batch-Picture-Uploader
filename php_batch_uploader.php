@@ -111,7 +111,7 @@ function recursiveUpload($dir) {
 	# Start the recursive upload.
 	disp("Recursively uploading: $dir", 6);
 	# Scan the folder for directories and images
-	$result = folder_scan($dir);
+	$result = folderScan($dir);
 	# If the number of images in directory is greater than 1.
 	if (count($result['images']) > 0) {
 		// Get current albums associated with the image
@@ -385,25 +385,32 @@ function genAlbumName($albumName) {
 	// Return the new name
 	return $newName;
 }
-#
+# getCaption - Get the caption for the image based on the mode.
+# Input: $image - Image file to generate caption for.
+# Output: Caption of image file.
 function getCaption($image) {
-
 	global $root_dir, $mode;
+	$root_dir = substr($root_dir, -1) == "/" ? $root_dir : $root_dir . "/";
 	if ($mode == 1) {
+		# In Mode 1 (where each (sub)directory gets its own album, just use the file name
 		$caption = pathinfo($image, PATHINFO_FILENAME);
 	} elseif ($mode == 2) {
+		# Define the glue for the caption.
 		$glue = " - ";
-		$dir_structure = explode('/', str_replace($root_dir . "/", "", $image));
+		# Replace the root directory with nothing.
+		$dir_structure = explode(DIRECTORY_SEPARATOR, str_replace($root_dir, "", $image));
+		# Generate a caption based on the folder's relative 
 		$caption = pathinfo(implode($glue, $dir_structure), PATHINFO_FILENAME);
 	} else {
 		disp("Invalid Mode", 1);
 	}
+	# Trim off excess white spaces.
 	$caption = trim($caption);
 	disp("Got Caption: $caption for $image", 6);
 	return $caption;
 }
-# imageExists
-# Check if a picture already exists in a list of pictures
+
+# imageExists - Check if a picture already exists in a list of pictures
 # Input: $pictures    - Pictures array from FaceBook's photos.get method
 #        $new_picture - Absolute path to the new photo to be checked.
 # Output: bool - True if picture exists. False if picture does not exist.
@@ -425,8 +432,7 @@ function imageExists($pictures, $new_picture) {
 	return false;
 }
 
-# makeThumb
-# 	Create a thumbnail of a photo in batch mode. Will create a new process with proc_open
+# makeThumbBatch - Create a thumbnail of a photo in batch mode. Will create a new process with proc_open
 # Input: $file - Absolute path to the new photo to have a thumb created
 # Output: Array[0] proc_open resource.
 #		  Array[1] Associative array with the [original] file and [thumb]nail being generated. 
@@ -454,10 +460,15 @@ function makeThumbBatch($file) {
 	# Return output.
 	return $ret;
 }
-# Scan folder for images
-function folder_scan($dir) {
+
+# folderScan - Scan folder for images and directories
+# Input: $dir - Directory to scan
+# Output: Associative array with all the [images] and [directories] that the input directory contains.
+function folderScan($dir) {
 	disp("Scanning Folder: $dir", 6);
-	// Add trailing slash to directory
+	# Define image extensions in lower case.
+	$imgExt=array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff');
+	# Add trailing slash to directory if it doesn't exist already.
 	$dir = substr($dir, -1) == "/" ? $dir : $dir . "/";
 	# Create arrays
 	$result['directories'] = Array();
@@ -476,25 +487,30 @@ function folder_scan($dir) {
 				$result['directories'][] = $dir . $file;
 			}
 			# If the 'file' is an image file.
-			if (is_file($dir . $file) && hasExt($file, array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff'))) {
+			if (is_file($dir . $file) && hasExt($file, $imgExt)) {
 				$result['images'][] = $dir . $file;
 			}
 		}
 	}
-	#Return result
 	return $result;
 }
-# Determine if file has an extension.
-function hasExt($file, $findExt) {
 
-# getConverter
+# hasExt - Determine if file has an extension.
+# Input: $file - file with extension
+#		 $findExt - string or array of strings of extensions to compare to.
+# Output: Boolean if the file's extension is in the string/array of #findExt
+function hasExt($file, $findExt) {
+	# If the extension to search for isn't an array, make it one
 	if (!is_array($findExt)) {
-		$findExt = array($findExt);
+		$findExt[]= $findExt;
 	}
+	# Find the extension of the file
 	$ext = end(explode(".", $file));
-	return in_array(strtolower($ext), $findExt);
+	# Return if the extension exists in the list of extensions to search.
+	return in_array(strtolower($ext), strtolower($findExt));
 }
-# Find the conversion utility. (Image Magick or Graphics Magick)
+
+# getConverter - Find the conversion utility. (Image Magick or Graphics Magick)
 # Input: $path - specified path to converter.
 # Output: path to converter is assigned to $converter global.
 function getConverter($path = NULL) {
@@ -518,14 +534,21 @@ function getConverter($path = NULL) {
 	} else {
 		# If path isn't executable
 		if (!is_executable($path)) {
+			# Return an error.
 			disp("$path is not executable. Please specify one with -c", 1);
 		}
-		$converter = $path;
+		$ex=pathinfo($path, PATHINFO_FILENAME);
+		if ($ex=="gm" {
+			$converter = "$path convert";
+		} else {
+			$converter = $path;
+		}
 	}
+	# In case it has spaces in the name.
+	$converter=escapeshellcmd($converter);
 }
 
-# parseParameters
-# Parse input parameters. Taken from the comments on the getopts page.
+# parseParameters - Parse input parameters. Taken from the comments on the getopts page.
 # Input: nothing
 # Output: array of input parameters
 function parseParameters($noopt = array()) {
@@ -557,8 +580,7 @@ function parseParameters($noopt = array()) {
 	return $result;
 }
 
-# disp
-# 	Display messages according to verbosity level. Any message with a level <=1 will cause the program to exit
+# disp - Display messages according to verbosity level. Any message with a level <=1 will cause the program to exit
 # Input: $message message to display
 #		 $level display level of message. If verbrosity is >= to the display level, the message will be displayed
 function disp($message, $level) {
@@ -570,8 +592,7 @@ function disp($message, $level) {
 	if ($level <= 1) die("\n");
 }
 
-# getDuration
-# 	Calculate diration between events.
+# getDuration - Calculate diration between events.
 # Input: verbrosity
 function getDuration($verbosity) {
 	global $start_time;
