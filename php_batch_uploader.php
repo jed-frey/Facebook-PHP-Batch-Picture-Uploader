@@ -408,6 +408,7 @@ function getCaption($image) {
 # Check if a picture already exists in a list of pictures
 # Input: $pictures    - Pictures aray from FaceBook's photos.get method
 #        $new_picture - Absolute path to the new photo to be checked.
+# Output: bool - True if picture exists. False if picture does not exist.
 function imageExists($pictures, $new_picture) {
 	# Make sure the picture array is actually one
 	if (!is_array($pictures[0]) || empty($pictures[0])) {
@@ -420,10 +421,10 @@ function imageExists($pictures, $new_picture) {
 		}
 		foreach($album_pictures as $picture) {
 			# If the caption matches, which the uploader assigns to the filename minus extension.
-			if (@$picture['caption'] == getCaption($new_picture)) return 1;
+			if (@$picture['caption'] == getCaption($new_picture)) return true;
 		}
 	}
-	return 0;
+	return false;
 }
 # Make Thumbnails
 function makeThumb($file) {
