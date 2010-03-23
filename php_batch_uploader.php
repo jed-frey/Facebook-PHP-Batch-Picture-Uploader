@@ -411,14 +411,18 @@ function getCaption($image) {
 }
 
 # imageExists - Check if a picture already exists in a list of pictures
-# Input: $pictures    - Pictures array from FaceBook's photos.get method
+# Input: $pictures_captions    - Picture captions array from FaceBook's photos.get method
 #        $new_picture - Absolute path to the new photo to be checked.
 # Output: bool - True if picture exists. False if picture does not exist.
-function imageExists($pictures, $new_picture) {
-	# Make sure the picture array is actually one
-	if (!is_array($pictures[0]) || empty($pictures[0])) {
-		return 0;
+function imageExists($pictures_captions, $new_picture) {
+	# Make sure the picture array is actually one	
+	if (!is_array($pictures)) {
+		return false;
 	}
+	$caption=getCaption($new_picture);
+	return in_array($caption,$album_captions);
+	/*
+	Old method. foreach should only be run once, not for each photo.
 	foreach($pictures as $album_pictures) {
 		# Make sure the album is an array (will not be for a new album)
 		if (!is_array($album_pictures) || empty($pictures)) {
@@ -429,7 +433,9 @@ function imageExists($pictures, $new_picture) {
 			if (@$picture['caption'] == getCaption($new_picture)) return true;
 		}
 	}
+	in_array
 	return false;
+	*/
 }
 
 # makeThumbBatch - Create a thumbnail of a photo in batch mode. Will create a new process with proc_open
