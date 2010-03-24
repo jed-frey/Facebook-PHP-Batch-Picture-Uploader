@@ -2,56 +2,64 @@
 <?php
 # Batch Branch
 # Test
-
 $converterPath = NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
+
 ####
 # Here Be Dragons.
 ####
 error_reporting(E_ALL | !E_STRICT);
 $start_time = microtime(true);
 # Include required facebook include files.
-require_once ("facebook-platform/php/facebook.php");
-require_once ("facebook-platform/php/facebook_desktop.php");
-require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
-# Key and Secret. Used for the Facebook App.
-$key = "187d16837396c6d5ecb4b48b7b8fa038";
-$sec = "dc7a883649f0eac4f3caa8163b7e2a31";
-# Parse input options
-$options = parseParameters();
-# Set defaults
-# Set verbosity
-$verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
-# Set the upload mode.
-$mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
-# Get the image converter to use.
-getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
-# Create new facebook object.
+if (is_file("facebook-platform/php/facebook.php")) {
+	require_once ("facebook-platform/php/facebook.php");
+	require_once ("facebook-platform/php/facebook_desktop.php");
+	require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
+} else {
+	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh",0);
+}
+
+# If no arguments are given.
 if ($argc == 1) {
-	# If Arument list
-	echo "Version: php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
+	# Display information
+	echo "php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
 Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n";
+	# Display Help.
 	printHelp();
 	die();
-}
-# If the user asks for mode help.
-if (array_key_exists("m", $options) && $options['m'] == "h") {
+} elseif (array_key_exists("m", $options) && $options['m'] == "h") {
+	# If the user asks for mode help.
 	printModeHelp();
 	die();
 }
+
+# Parse input options and return an $options array.
+$options = parseParameters();
+## Set defaults
+# Set verbosity - Default 2.
+$verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
+# Set the upload mode - Default 1.
+$mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
+# Get the image converter to use.
+getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
+
 disp("Init...", 6);
+
+// Create Facebook Object
+# Key and Secret for php_batch_uploader.
+$key = "187d16837396c6d5ecb4b48b7b8fa038";
+$sec = "dc7a883649f0eac4f3caa8163b7e2a31";
+$fbo = new FacebookDesktop($key, $sec, true);
+
 if (array_key_exists("a", $options)) {
 	if ($options["a"] == 1) {
 		echo "You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n";
 		printHelp();
 		die();
 	}
-	// Create Facebook Object
-	$fbo = new FacebookDesktop($key, $sec, true);
 	try {
 		$auth = $fbo->do_get_session($options["a"]);
 		if (empty($auth)) throw new Exception('Empty Code.');
-	}
-	catch(Exception $e) {
+	} catch(Exception $e) {
 		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 	}
 	disp("Executed code authorization.", 6);
@@ -61,18 +69,20 @@ if (array_key_exists("a", $options)) {
 	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
 	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
 }
-// Check if authorization file exists.
+
+# Check if authorization file exists.
 if (!is_file(getenv('HOME') . "/.facebook_auth")) {
 	echo ("User has not been authorized.\n\n");
 	printHelp();
 	die();
 }
+
 # Get saved authorization data.
-$auth = unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
-disp("Load saved session data. ", 6);
+disp("Loading session data. ", 6);
+$auth = is_array($auth)?$auth:unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
+
 # Try to login with auth programs
 try {
-	$fbo = new FacebookDesktop($key, $sec, true);
 	$fbo->api_client->session_key = $auth['session_key'];
 	$fbo->secret = $auth['secret'];
 	$fbo->api_client->secret = $auth['secret'];
@@ -82,11 +92,12 @@ try {
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
 		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
 	}
-}
-catch(Exception $e) {
+} catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
-disp("Facebook Authorization.", 6);
+	disp("Facebook Authorization.", 6);
+}
+
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
 # For each input directory.
@@ -105,7 +116,16 @@ for ($i = 1;$i <= max(array_keys($options));$i++) {
 }
 # Exit function.
 die;
-# Recursively upload photos
+
+# getAlbums - Get all current facebook albums
+function getAlbums() {
+	global $albums;
+	$albums=$facebook->api_client->photos_getAlbums();
+	
+}
+
+# recursiveUpload - Recursively upload photos
+# Input: $dir - directory to start recursing from.
 function recursiveUpload($dir) {
 	global $fbo;
 	# Start the recursive upload.
@@ -319,6 +339,7 @@ function uploadImage($aids, $image) {
 	# Return album IDs
 	return $aids;
 }
+
 # Get the album ID if the album exists, else create the album and return the ID.
 function getAlbumId($albumName, $description = "") {
 	global $fbo, $uid;
@@ -352,12 +373,14 @@ function getAlbumId($albumName, $description = "") {
 		$i++;
 	}
 	// If the album isn't found,  create it.
-	$album = $fbo->api_client->photos_createAlbum($albumName, $description, "", "friends");
+	$album = $fbo->api_client->photos_createAlbum($albumName, $description, "", "SELF");
 	disp("Create Album: $albumName ($description)", 5);
 	$aids[] = $album['aid'];
 	return $aids;
 }
-# Get the base name of an album based on the mode.
+
+# getAlbumBase - Get the base name of an album based on the mode.
+# Input: $image - Image to get the album base for.
 function getAlbumBase($image) {
 	global $root_dir, $mode;
 	if ($mode == 1) {
@@ -371,20 +394,25 @@ function getAlbumBase($image) {
 	}
 	return $album_name;
 }
-# Generate a new album name.
-function genAlbumName($albumName) {
+
+
+# genAlbumName - Generate a new album name.
+# Input: $baseAlbumName - base name of album.
+# Output: return the newName.
+function genAlbumName($baseAlbumName) {
 	// Determine if the album name 'My Album #2' etc is in use.
-	if (preg_match('/([^#]+) #([\\d]+)/', $albumName, $regs)) {
+	if (preg_match('/([^#]+) #([\\d]+)/', $baseAlbumName, $regs)) {
 		// If so, increment the number by 1.
 		$newName = $regs[1] . " #" . (intval($regs[2]) + 1);
 	} else {
 		// Else, album name is #2.
-		$newName = $albumName . " #2";
+		$newName = $baseAlbumName . " #2";
 	}
-	disp("Generated new album name $newName from $albumName", 6);
+	disp("Generated new album name $newName from $baseAlbumName", 6);
 	// Return the new name
 	return $newName;
 }
+
 # getCaption - Get the caption for the image based on the mode.
 # Input: $image - Image file to generate caption for.
 # Output: Caption of image file.
