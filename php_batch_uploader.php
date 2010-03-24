@@ -3,7 +3,6 @@
 # Batch Branch
 # Test
 $converterPath = NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
-
 ####
 # Here Be Dragons.
 ####
@@ -15,9 +14,8 @@ if (is_file("facebook-platform/php/facebook.php")) {
 	require_once ("facebook-platform/php/facebook_desktop.php");
 	require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
 } else {
-	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh",0);
+	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh", 0);
 }
-
 # If no arguments are given.
 if ($argc == 1) {
 	# Display information
@@ -31,7 +29,6 @@ Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n";
 	printModeHelp();
 	die();
 }
-
 # Parse input options and return an $options array.
 $options = parseParameters();
 ## Set defaults
@@ -41,15 +38,12 @@ $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
-
 disp("Init...", 6);
-
 // Create Facebook Object
 # Key and Secret for php_batch_uploader.
 $key = "187d16837396c6d5ecb4b48b7b8fa038";
 $sec = "dc7a883649f0eac4f3caa8163b7e2a31";
 $fbo = new FacebookDesktop($key, $sec, true);
-
 if (array_key_exists("a", $options)) {
 	if ($options["a"] == 1) {
 		echo "You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n";
@@ -59,7 +53,8 @@ if (array_key_exists("a", $options)) {
 	try {
 		$auth = $fbo->do_get_session($options["a"]);
 		if (empty($auth)) throw new Exception('Empty Code.');
-	} catch(Exception $e) {
+	}
+	catch(Exception $e) {
 		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 	}
 	disp("Executed code authorization.", 6);
@@ -69,18 +64,15 @@ if (array_key_exists("a", $options)) {
 	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
 	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
 }
-
 # Check if authorization file exists.
 if (!is_file(getenv('HOME') . "/.facebook_auth")) {
 	echo ("User has not been authorized.\n\n");
 	printHelp();
 	die();
 }
-
 # Get saved authorization data.
 disp("Loading session data. ", 6);
-$auth = is_array($auth)?$auth:unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
-
+$auth = is_array($auth) ? $auth : unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
 # Try to login with auth programs
 try {
 	$fbo->api_client->session_key = $auth['session_key'];
@@ -92,12 +84,12 @@ try {
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
 		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
 	}
-} catch(Exception $e) {
+}
+catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
-	disp("Facebook Authorization.", 6);
+disp("Facebook Authorization.", 6);
 }
-
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
 # For each input directory.
@@ -116,14 +108,11 @@ for ($i = 1;$i <= max(array_keys($options));$i++) {
 }
 # Exit function.
 die;
-
 # getAlbums - Get all current facebook albums
 function getAlbums() {
 	global $albums;
-	$albums=$facebook->api_client->photos_getAlbums();
-	
+	$albums = $facebook->api_client->photos_getAlbums();
 }
-
 # recursiveUpload - Recursively upload photos
 # Input: $dir - directory to start recursing from.
 function recursiveUpload($dir) {
@@ -174,7 +163,7 @@ function recursiveUpload($dir) {
 				$k = $i + $j;
 				list($process[$j], $images[$j]) = makeThumb($imagesToUpload[$k]);
 			}
-			$batch=batchPrep($images);
+			$batch = batchPrep($images);
 			print_r($process);
 			die;
 			waitToProcess($process);
@@ -189,12 +178,8 @@ function recursiveUpload($dir) {
 		recursiveUpload($dir);
 	}
 }
-
 function batchPrep($images) {
-	
-	
 }
-
 # Wait for all thumbnail processing threads to finish.
 function waitToProcess($procs) {
 	do {
@@ -339,7 +324,6 @@ function uploadImage($aids, $image) {
 	# Return album IDs
 	return $aids;
 }
-
 # Get the album ID if the album exists, else create the album and return the ID.
 function getAlbumId($albumName, $description = "") {
 	global $fbo, $uid;
@@ -378,7 +362,6 @@ function getAlbumId($albumName, $description = "") {
 	$aids[] = $album['aid'];
 	return $aids;
 }
-
 # getAlbumBase - Get the base name of an album based on the mode.
 # Input: $image - Image to get the album base for.
 function getAlbumBase($image) {
@@ -394,8 +377,6 @@ function getAlbumBase($image) {
 	}
 	return $album_name;
 }
-
-
 # genAlbumName - Generate a new album name.
 # Input: $baseAlbumName - base name of album.
 # Output: return the newName.
@@ -412,7 +393,6 @@ function genAlbumName($baseAlbumName) {
 	// Return the new name
 	return $newName;
 }
-
 # getCaption - Get the caption for the image based on the mode.
 # Input: $image - Image file to generate caption for.
 # Output: Caption of image file.
@@ -427,7 +407,7 @@ function getCaption($image) {
 		$glue = " - ";
 		# Replace the root directory with nothing.
 		$dir_structure = explode(DIRECTORY_SEPARATOR, str_replace($root_dir, "", $image));
-		# Generate a caption based on the folder's relative 
+		# Generate a caption based on the folder's relative
 		$caption = pathinfo(implode($glue, $dir_structure), PATHINFO_FILENAME);
 	} else {
 		disp("Invalid Mode", 1);
@@ -437,39 +417,37 @@ function getCaption($image) {
 	disp("Got Caption: $caption for $image", 6);
 	return $caption;
 }
-
 # imageExists - Check if a picture already exists in a list of pictures
 # Input: $pictures_captions    - Picture captions array from FaceBook's photos.get method
 #        $new_picture - Absolute path to the new photo to be checked.
 # Output: bool - True if picture exists. False if picture does not exist.
 function imageExists($pictures_captions, $new_picture) {
-	# Make sure the picture array is actually one	
+	# Make sure the picture array is actually one
 	if (!is_array($pictures)) {
 		return false;
 	}
-	$caption=getCaption($new_picture);
-	return in_array($caption,$album_captions);
+	$caption = getCaption($new_picture);
+	return in_array($caption, $album_captions);
 	/*
 	Old method. foreach should only be run once, not for each photo.
 	foreach($pictures as $album_pictures) {
-		# Make sure the album is an array (will not be for a new album)
-		if (!is_array($album_pictures) || empty($pictures)) {
-			continue;
-		}
-		foreach($album_pictures as $picture) {
-			# If the caption matches, which the uploader assigns to the filename minus extension.
-			if (@$picture['caption'] == getCaption($new_picture)) return true;
-		}
+	# Make sure the album is an array (will not be for a new album)
+	if (!is_array($album_pictures) || empty($pictures)) {
+	continue;
+	}
+	foreach($album_pictures as $picture) {
+	# If the caption matches, which the uploader assigns to the filename minus extension.
+	if (@$picture['caption'] == getCaption($new_picture)) return true;
+	}
 	}
 	in_array
 	return false;
 	*/
 }
-
 # makeThumbBatch - Create a thumbnail of a photo in batch mode. Will create a new process with proc_open
 # Input: $file - Absolute path to the new photo to have a thumb created
 # Output: Array[0] proc_open resource.
-#		  Array[1] Associative array with the [original] file and [thumb]nail being generated. 
+#		  Array[1] Associative array with the [original] file and [thumb]nail being generated.
 function makeThumbBatch($file) {
 	disp("Make Thumbnail: $file", 6);
 	# global variable for converter.
@@ -487,21 +465,20 @@ function makeThumbBatch($file) {
 	# create command to create thumbnail
 	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
 	disp($command, 6);
-	$descriptorspec = array(0 => array("file", "/dev/null", "r"),1 => array("file", "/dev/null", "w"),2 => array("file", "/dev/null", "a"));
+	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
 	# Fork process
 	$ret[0] = proc_open($command, $descriptorspec, $pipes);
-	$ret[1] = array("original"=>$file,"thumb"=>$output);
+	$ret[1] = array("original" => $file, "thumb" => $output);
 	# Return output.
 	return $ret;
 }
-
 # folderScan - Scan folder for images and directories
 # Input: $dir - Directory to scan
 # Output: Associative array with all the [images] and [directories] that the input directory contains.
 function folderScan($dir) {
 	disp("Scanning Folder: $dir", 6);
 	# Define image extensions in lower case.
-	$imgExt=array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff');
+	$imgExt = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff');
 	# Add trailing slash to directory if it doesn't exist already.
 	$dir = substr($dir, -1) == "/" ? $dir : $dir . "/";
 	# Create arrays
@@ -528,7 +505,6 @@ function folderScan($dir) {
 	}
 	return $result;
 }
-
 # hasExt - Determine if file has an extension.
 # Input: $file - file with extension
 #		 $findExt - string or array of strings of extensions to compare to.
@@ -536,14 +512,13 @@ function folderScan($dir) {
 function hasExt($file, $findExt) {
 	# If the extension to search for isn't an array, make it one
 	if (!is_array($findExt)) {
-		$findExt[]= $findExt;
+		$findExt[] = $findExt;
 	}
 	# Find the extension of the file
 	$ext = end(explode(".", $file));
 	# Return if the extension exists in the list of extensions to search.
 	return in_array(strtolower($ext), strtolower($findExt));
 }
-
 # getConverter - Find the conversion utility. (Image Magick or Graphics Magick)
 # Input: $path - specified path to converter.
 # Output: path to converter is assigned to $converter global.
@@ -571,17 +546,16 @@ function getConverter($path = NULL) {
 			# Return an error.
 			disp("$path is not executable. Please specify one with -c", 1);
 		}
-		$ex=pathinfo($path, PATHINFO_FILENAME);
-		if ($ex=="gm" {
+		$ex = pathinfo($path, PATHINFO_FILENAME);
+		if ($ex == "gm" {
 			$converter = "$path convert";
 		} else {
 			$converter = $path;
 		}
 	}
 	# In case it has spaces in the name.
-	$converter=escapeshellcmd($converter);
+	$converter = escapeshellcmd($converter);
 }
-
 # parseParameters - Parse input parameters. Taken from the comments on the getopts page.
 # Input: nothing
 # Output: array of input parameters
@@ -613,7 +587,6 @@ function parseParameters($noopt = array()) {
 	}
 	return $result;
 }
-
 # disp - Display messages according to verbosity level. Any message with a level <=1 will cause the program to exit
 # Input: $message message to display
 #		 $level display level of message. If verbrosity is >= to the display level, the message will be displayed
@@ -625,7 +598,6 @@ function disp($message, $level) {
 	echo empty($message) ? "" : $message . "\n";
 	if ($level <= 1) die("\n");
 }
-
 # getDuration - Calculate diration between events.
 # Input: verbrosity
 function getDuration($verbosity) {
