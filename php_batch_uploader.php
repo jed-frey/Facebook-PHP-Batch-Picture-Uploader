@@ -3,11 +3,13 @@
 # Batch Branch
 # Test
 $converterPath = NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
+$albumLimit= 200; # Limit the number of photos per album to this. Currently 200 in facebook.
+$photoSize = "720x720"; # Resize to max facebook photo size. Currently 720x720 in facebook.
+$photoQuality = 80; # JPEG Quality to resize with.
 ####
 # Here Be Dragons.
 ####
 error_reporting(E_ALL | !E_STRICT);
-$start_time = microtime(true);
 # Include required facebook include files.
 if (is_file("facebook-platform/php/facebook.php")) {
 	require_once ("facebook-platform/php/facebook.php");
@@ -16,9 +18,12 @@ if (is_file("facebook-platform/php/facebook.php")) {
 } else {
 	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh", 0);
 }
+$start_time = microtime(true);
+# Parse input options and return an $options array.
+$options = parseParameters();
 # If no arguments are given.
 if ($argc == 1) {
-	# Display information
+	# Display script information
 	echo "php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
 Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n";
 	# Display Help.
@@ -29,8 +34,7 @@ Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n";
 	printModeHelp();
 	die();
 }
-# Parse input options and return an $options array.
-$options = parseParameters();
+
 ## Set defaults
 # Set verbosity - Default 2.
 $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
@@ -44,6 +48,8 @@ disp("Init...", 6);
 $key = "187d16837396c6d5ecb4b48b7b8fa038";
 $sec = "dc7a883649f0eac4f3caa8163b7e2a31";
 $fbo = new FacebookDesktop($key, $sec, true);
+
+$auth=NULL;
 if (array_key_exists("a", $options)) {
 	if ($options["a"] == 1) {
 		echo "You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n";
@@ -64,12 +70,14 @@ if (array_key_exists("a", $options)) {
 	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
 	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
 }
+
 # Check if authorization file exists.
 if (!is_file(getenv('HOME') . "/.facebook_auth")) {
 	echo ("User has not been authorized.\n\n");
 	printHelp();
 	die();
 }
+
 # Get saved authorization data.
 disp("Loading session data. ", 6);
 $auth = is_array($auth) ? $auth : unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
@@ -84,12 +92,11 @@ try {
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
 		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
 	}
-}
-catch(Exception $e) {
+} catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 2);
 }
 disp("Facebook Authorization.", 6);
-}
+
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
 # For each input directory.
@@ -110,8 +117,21 @@ for ($i = 1;$i <= max(array_keys($options));$i++) {
 die;
 # getAlbums - Get all current facebook albums
 function getAlbums() {
-	global $albums;
-	$albums = $facebook->api_client->photos_getAlbums();
+	global $fbo;
+	$albums = $fbo->api_client->photos_getAlbums("","");
+	$albums=arrayMutate($albums);
+	return $albums;
+}
+
+# getImages - Get all current images album(s)
+function getImages($aids) {
+	if (!is_array($aids)) {
+		$aids=array($aids);
+	}
+	
+	foreach ($aids as $aid) {
+		
+	}
 }
 # recursiveUpload - Recursively upload photos
 # Input: $dir - directory to start recursing from.
@@ -124,7 +144,7 @@ function recursiveUpload($dir) {
 	# If the number of images in directory is greater than 1.
 	if (count($result['images']) > 0) {
 		// Get current albums associated with the image
-		$aids = getAlbumId(getAlbumBase($result['images'][0]));
+		$aids = getAlbumIds(getAlbumBase($result['images'][0]));
 		disp("Get Album ID", 6);
 		# If you have a large directory that you've already partially uploaded, you will hit the
 		# API request limit and have to take a time out.
@@ -325,10 +345,40 @@ function uploadImage($aids, $image) {
 	return $aids;
 }
 # Get the album ID if the album exists, else create the album and return the ID.
-function getAlbumId($albumName, $description = "") {
-	global $fbo, $uid;
-	// Get a list of user albums
-	$albums = $fbo->api_client->photos_getAlbums($uid, NULL);
+function getAlbumIds($album_name, $description = "") {
+	global $albums, $fbo, $uid;
+	# Get a list of user albums
+	$albums=getAlbums();
+//	$album_name="Road Trip - May 2006";
+	if ($idx[]=array_search($album_name,$albums["name"])) {
+		disp("Found $album_name",6);
+		for ($i=2;$idx_tmp=array_search("$album_name #$i",$albums["name"]);$i++) {
+				$idx[]=$idx_tmp;
+				disp("Found $album_name #$i",6);
+		}
+		print_r($albums);
+		$albums=arrayMutate($albums);
+		print_r($albums);
+		die;
+	} else {
+		disp("$album_name not found. Creating.",2);
+		# If the album isn't found, create it.
+		$albums[0]=$fbo->api_client->photos_createAlbum($album_name);
+		$albums[0]["can_upload"]=1;
+		$albums[0]["type"]="normal";
+	}
+	foreach ($idx as $i) {
+		$albums2[]=$albums[$i];
+	}
+	print_r($albums2);
+	die;
+	return $idx;
+	print_r($idx);
+	print_r($albums);
+	print_r(array_keys($albums));
+	die;
+	
+	die;
 	$i = 0;
 	# Create Album IDs array
 	$aids = array();
@@ -356,8 +406,6 @@ function getAlbumId($albumName, $description = "") {
 		}
 		$i++;
 	}
-	// If the album isn't found,  create it.
-	$album = $fbo->api_client->photos_createAlbum($albumName, $description, "", "SELF");
 	disp("Create Album: $albumName ($description)", 5);
 	$aids[] = $album['aid'];
 	return $aids;
@@ -377,6 +425,22 @@ function getAlbumBase($image) {
 	}
 	return $album_name;
 }
+
+#
+function arrayMutate($arrays) {
+	# Convert array so that it can be easily searched and used.
+	# $arrays[0][$key]=$value => $arrays[$key][0]=$value
+	$arrays_final=array(); # Set Albums as array.
+	$i=0;
+	foreach ($arrays as $k1 => $array) {
+		foreach ($array as $key=>$value) {
+			$arrays_final[$key][$i]=$value;
+		}
+		$i++;
+	}
+	return $arrays_final;
+}
+
 # genAlbumName - Generate a new album name.
 # Input: $baseAlbumName - base name of album.
 # Output: return the newName.
@@ -449,21 +513,14 @@ function imageExists($pictures_captions, $new_picture) {
 # Output: Array[0] proc_open resource.
 #		  Array[1] Associative array with the [original] file and [thumb]nail being generated.
 function makeThumbBatch($file) {
+	global $photoSize, $photoQuality, $converter;
 	disp("Make Thumbnail: $file", 6);
 	# global variable for converter.
-	global $converter;
-	# Generate a temp file where the thumbnails will be put before uploading.
-	$temp_file = tempnam("/tmp", "fbi_");
-	# image quality
-	$quality = 80;
-	# Resize to max facebook photo size.
-	$resize = "720x720";
-	# Input File
-	$input = escapeshellarg($file);
-	# Output file.
-	$output = escapeshellarg($temp_file);
+	$temp_file = tempnam("/tmp", "fbi_"); # Generate a temp file where the thumbnails will be put before uploading.
+	$input = escapeshellarg($file);			  # Input File
+	$output = escapeshellarg($temp_file); # Output file.
 	# create command to create thumbnail
-	$command = "$converter -format JPG -quality $quality -size $resize -resize $resize +profile '*' $input $output";
+	$command = "$converter -format JPG -quality $photoQuality -size $photoSize -resize $photoSize +profile '*' $input $output";
 	disp($command, 6);
 	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
 	# Fork process
@@ -517,7 +574,7 @@ function hasExt($file, $findExt) {
 	# Find the extension of the file
 	$ext = end(explode(".", $file));
 	# Return if the extension exists in the list of extensions to search.
-	return in_array(strtolower($ext), strtolower($findExt));
+	return in_array(strtolower($ext), $findExt);
 }
 # getConverter - Find the conversion utility. (Image Magick or Graphics Magick)
 # Input: $path - specified path to converter.
@@ -547,7 +604,7 @@ function getConverter($path = NULL) {
 			disp("$path is not executable. Please specify one with -c", 1);
 		}
 		$ex = pathinfo($path, PATHINFO_FILENAME);
-		if ($ex == "gm" {
+		if ($ex == "gm") {
 			$converter = "$path convert";
 		} else {
 			$converter = $path;
