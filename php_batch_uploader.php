@@ -27,19 +27,16 @@ if (is_file("facebook-platform/php/facebook.php")) {
 	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh", 0);
 }
 
-$start_time = microtime(true);
-# Parse input options and return an $options array.
-$options = parseParameters();
+$start_time = microtime(true); # Start timer
+$options = parseParameters(); # Parse input options and return an $options array.
 # If no arguments are given.
 if ($argc == 1) {
 	# Display Help.
 	printHelp("php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
-Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n");
-	die();
+Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n");die();
 } elseif (array_key_exists("m", $options) && $options['m'] == "h") {
 	# If the user asks for mode help.
-	printModeHelp();
-	die();
+	printModeHelp();die();
 }
 
 ## Set defaults
@@ -47,6 +44,7 @@ Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n");
 $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 # Set the upload mode - Default 1.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
+if ($mode!=2&&$mode!=1) disp("Invalid Mode: $mode", 1);
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
 disp("Init...", 6);
@@ -58,35 +56,19 @@ $fbo = new FacebookDesktop($key, $sec, true);
 
 $auth=NULL;
 if (array_key_exists("a", $options)) {
-	if ($options["a"] == 1) {
-		printHelp("You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n");
-		die();
+	getFacebookAuthorization($options["a"]);
 	}
-	try {
-		$auth = $fbo->do_get_session($options["a"]);
-		if (empty($auth)) throw new Exception('Empty Code.');
-	} catch(Exception $e) {
-		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
-	}
-	disp("Executed code authorization.", 6);
-	// Store authorization code in authentication array
-	$auth['code'] = $options["a"];
-	// Save to users home directory
-	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
-	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
-}
-
 # Check if authorization file exists.
 if (!is_file(getenv('HOME') . "/.facebook_auth")) {
 	printHelp("User has not been authorized.\n\n");
 	die();
 }
-
 # Get saved authorization data.
 disp("Loading session data. ", 6);
 $auth = is_array($auth) ? $auth : unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
 # Try to login with auth programs
 try {
+	disp("Checking Facebook Authorization.", 6);
 	$fbo->api_client->session_key = $auth['session_key'];
 	$fbo->secret = $auth['secret'];
 	$fbo->api_client->secret = $auth['secret'];
@@ -99,40 +81,44 @@ try {
 } catch(Exception $e) {
 	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
 }
-disp("Facebook Authorization.", 6);
-
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one upload folder.", 1);
 # For each input directory.
 for ($i = 1;$i <= max(array_keys($options));$i++) {
 	# Get full path of the directory w/ trailing slash.
 	$dir = realpath($options[$i]);
-	disp("Real directory: $dir", 6);
-	# Set the directory as the root directory so that everything is calculated relative to that.
-	$root_dir = $dir;
 	# Make sure that it is actually a directory and not a file.
 	if (!is_dir($dir)) {
 		disp("Warning: $dir is not a directory. Skipping.", 2);
 		continue;
 	}
+	# Set the directory as the root directory so that everything is calculated relative to that.
+	$root_dir = $dir;
 	recursiveUpload($dir);
 }
 # Exit function.
 die;
+
 # recursiveUpload - Recursively upload photos
 # Input: $dir - directory to start recursing from.
 function recursiveUpload($dir) {
 	global $fbo;
 	# Start the recursive upload.
 	disp("Recursively uploading: $dir", 6);
+	
 	# Scan the folder for directories and images
 	$result = folderScan($dir);
 	# If the number of images in directory is greater than 1.
 	if (count($result['images']) > 0) {
 		disp("Get Album ID", 6);
+		# Get album base name.
+		$albumBase=getAlbumBase($result['images'][0]);
+		# Get current albums associated with the base name.
+		$imageAlbums = getImageAlbums(getAlbumBase($result['images'][0]));
+		uploadImages($result["images"],$imageAlbums);
+		
+		
 		uploadImages($result["images"]);
-		// Get current albums associated with the image
-		$aids = getAlbumIds(getAlbumBase($result['images'][0]));
 		# If you have a large directory that you've already partially uploaded, you will hit the
 		# API request limit and have to take a time out.
 		$errors = 1;

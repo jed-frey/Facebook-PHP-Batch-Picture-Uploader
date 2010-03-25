@@ -5,6 +5,7 @@ function getAlbums() {
 	disp("Getting albums",6);
 	# Create the album.
 	$albums = $fbo->api_client->photos_getAlbums("","");
+	return $albums;
 }
 
 # getAlbums - Get all current facebook albums
@@ -35,7 +36,20 @@ function getImages($aids) {
 	}
 }
 
-# facebookBatch - Performs batch facebook functions adhering to the 20 cmd limit on batch processes
-function facebookBatch() {
-
+function getFacebookAuthorization($a=1) {
+if ($a == 1) {
+		printHelp("You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n");die();
+	}
+	try {
+		$auth = $fbo->do_get_session($a);
+		if (empty($auth)) throw new Exception('Empty Code.');
+	} catch(Exception $e) {
+		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+	}
+	disp("Executed facebook authorization.", 6);
+	// Store authorization code in authentication array
+	$auth['code'] = $a;
+	// Save to users home directory
+	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
+	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
 }

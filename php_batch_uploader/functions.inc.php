@@ -32,6 +32,22 @@ function parseParameters($noopt = array()) {
 	}
 	return $result;
 }
+
+# arrayMutate - Mutates array so that it can be easily used with array_search and other array functions
+# Reversible so $arrays==arrayMutate(arrayMutate($arrays))
+# Input: $arrays - Original array of arrays
+# Output: Mutated array, $arrays[0][$key]=$value => $arrays[$key][0]=$value
+function arrayMutate($arrays) {
+	$arrays_final=array(); # Set Albums as array.
+	foreach ($arrays as $k1 => $array) {
+		foreach ($array as $k2 => $value) {
+			$arrays_final[$k2][$k1]=$value;
+		}
+	}
+	# Return array.
+	return $arrays_final;
+}
+
 # disp - Display messages according to verbosity level. Any message with a level <=1 will cause the program to exit
 # Input: $message message to display
 #		 $level display level of message. If verbrosity is >= to the display level, the message will be displayed
@@ -52,4 +68,11 @@ function getDuration($verbosity) {
 	# For verbrosity <5, just display time since the beginning. For vebrosity >=5, show elapsed time between events.
 	if ($verbosity >= 5) $start_time = microtime(true);
 	return $elapsed;
+}
+
+
+function pd($X=array()) {
+	print_r($X);
+	file_put_contents("/home/jafrey/exstatic.org/test.txt",print_r($X,1));
+	die;
 }

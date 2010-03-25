@@ -16,37 +16,9 @@ function makeThumbBatch($file) {
 	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
 	# Fork process
 	$ret[0] = proc_open($command, $descriptorspec, $pipes);
-	$ret[1] = array("original" => $file, "thumb" => $output);
+	$ret[1] = $output;
 	# Return output.
 	return $ret;
-}
-
-# imageExists - Check if a picture already exists in a list of pictures
-# Input: $pictures_captions    - Picture captions array from FaceBook's photos.get method
-#        $new_picture - Absolute path to the new photo to be checked.
-# Output: bool - True if picture exists. False if picture does not exist.
-function imageExists($pictures_captions, $new_picture) {
-	# Make sure the picture array is actually one
-	if (!is_array($pictures)) {
-		return false;
-	}
-	$caption = getCaption($new_picture);
-	return in_array($caption, $album_captions);
-	/*
-	Old method. foreach should only be run once, not for each photo.
-	foreach($pictures as $album_pictures) {
-	# Make sure the album is an array (will not be for a new album)
-	if (!is_array($album_pictures) || empty($pictures)) {
-	continue;
-	}
-	foreach($album_pictures as $picture) {
-	# If the caption matches, which the uploader assigns to the filename minus extension.
-	if (@$picture['caption'] == getCaption($new_picture)) return true;
-	}
-	}
-	in_array
-	return false;
-	*/
 }
 
 # folderScan - Scan folder for images and directories
