@@ -1,0 +1,196 @@
+<?php
+$batchLimit = 15;
+# Wait for all thumbnail processing threads to finish.
+function waitToProcess($procs) {
+	if (!is_array($procs)) $procs=array($procs);
+	do {
+		# Set the count of running processes to 0.
+		$running = 0;
+		# For each process
+		foreach($procs as $proc) {
+			# Get process status
+			$r = proc_get_status($proc);
+			# Increment the number of running threads.
+			if ($r["running"]) $running++;
+		}
+	}
+	while ($running != 0); # While the number running process isn't 0, keep checking.
+}
+function uploadImages($images, $imageAlbums) {
+	global $fbo;
+	$albumImages = getAlbumImages($imageAlbums);
+	$imagesToUpload = array();
+	foreach($images as $image) {
+		$caption = getCaption($image);
+		if (array_key_exists("caption",$albumImages)&&array_search($caption, $albumImages["caption"])) {
+			disp("Skipping: $image as  '$caption' already uploaded.", 4);
+			continue;
+		}
+		list($process, $thumb) = makeThumbBatch($image);
+		$temp["image"] = $image;
+		$temp["caption"] = $caption;
+		$temp["process"] = $process;
+		$temp["thumb"] = $thumb;
+		$temp["caption"] = $caption;
+		$temp["uploaded"] = false;
+		$temp["errors"] = 0;
+		$imagesToUpload[]=$temp;
+	}
+	while (1) {
+		$j=0;
+		for ($i=0;$i<count($imagesToUpload);$i++) {
+			if ($imagesToUpload[$i]["uploaded"]) continue;
+			disp("Waiting for processing to finish on: ".$imagesToUpload[$i]["caption"],5); 
+			waitToProcess($imagesToUpload[$i]["process"]);		
+			try {
+				$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums,$uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
+				$imageAlbums["size"][$uploadAlbumIdx]++;
+				$imagesToUpload[$i]["uploaded"]=true;
+				disp("Uploaded: ".$imagesToUpload[$i]["image"],3);
+				$j++;
+			} catch (Exception $e) {
+				disp($e->getMessage,5);break;
+				switch ($e->getCode()) {
+					case 1:
+					case 2:
+					case 5:
+						disp("Non-fatal error: ".$e->getMessage(),3);break;
+					case 100:
+					case 101:
+					case 103:
+					case 104:
+					case 120:
+					case 200:
+						disp("Fatal error: ".$e->getMessage()."\n Please submit a bug report: http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader",1);break;
+					case 102:
+						disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+					case 321:
+						disp($e->getMessage().". Should have been caught earlier.",3);	
+						$imageAlbums["size"][$uploadAlbumIdx]=200;
+						$imageAlbums["can_upload"][$uploadAlbumIdx]=0;
+						break;
+					case 324:
+						disp($e->getMessage().". Bad Graphics/ImageMagick output? Skipping ".$imagesToUpload[$i]["image"],3);
+						$imagesToUpload[$i]["uploaded"]=true;break;
+					case 325:
+						disp($e->getMessage().". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n\n",1);break;
+				}
+				$imagesToUpload[$i]["errors"]++;
+			}
+		}
+		if ($j==0) break;
+	}
+}
+
+function getUploadAID(&$imageAlbums,&$uploadAlbumIdx) {
+	static $uploadAlbumIndex;
+	$uploadAlbumIdx=array_search(1,$imageAlbums["can_upload"]);
+	if ($uploadAlbumIndex===false||$imageAlbums["size"][$uploadAlbumIdx]>=200) {
+		$newAlbumName=genAlbumName(end($imageAlbums["name"]));
+		$newAlbum=createAlbum($newAlbumName);
+		foreach ($newAlbum as $key => $value) {
+			$imageAlbums[$key][]=$value;
+		}
+		$uploadAlbumIdx=count($imageAlbums["name"])-1;
+	}
+	$aid=$imageAlbums["aid"][$uploadAlbumIdx];
+	return $aid;
+}
+
+function getAlbumImages($albums) {
+	global $fbo, $batchLimit;
+	$i = 0;
+	$fbo->api_client->begin_batch();
+	foreach($albums["aid"] as $aid) {
+		$allAlbumPictures[$i] = & $fbo->api_client->photos_get("", $aid, "");
+		$i++;
+		if (($i % $batchLimit) == 0) {
+			disp("Batch execution function limit reached. Executing and beginning new batch.", 5);
+			$fbo->api_client->end_batch();
+			$fbo->api_client->begin_batch();
+		}
+	}
+	$fbo->api_client->end_batch();
+	# Merge all of the album pictures into one picture array.
+	$albumImages = array();
+	foreach($allAlbumPictures as $albumPictures) {
+		if (is_array($albumPictures)) {
+			foreach($albumPictures as $picture) {
+				$albumImages[] = $picture;
+			}
+		}
+	}
+	return arrayMutate($albumImages);
+}
+
+# Get the album ID if the album exists, else create the album and return the ID.
+function getImageAlbums($album_name) {
+	global $albums, $fbo, $uid;
+	# Get a list of user albums
+	$albums = getAlbums();
+	$albums2 = arrayMutate($albums);
+	//$album_name="Road Trip - May 2006";
+	if ($idx[] = array_search($album_name, $albums2["name"])) {
+		disp("Found $album_name", 6);
+		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
+			$idx[] = $idx_tmp;
+			disp("Found $album_name #$i", 6);
+		}
+		foreach($idx as $i) {
+			$imageAlbums[] = $albums[$i];
+		}
+	} else {
+		disp("$album_name not found. Creating.", 2);
+		$imageAlbums[0]=createAlbum($album_name);
+	}
+	$imageAlbums = arrayMutate($imageAlbums);
+	return $imageAlbums;
+}
+# getAlbumBase - Get the base name of an album based on the mode.
+# Input: $image - Image to get the album base for.
+function getAlbumBase($image) {
+	global $root_dir, $mode;
+	$album_name = ($mode == 1) ? basename(dirname($image)) : basename($root_dir);
+	disp("Generating Album Base Name: $album_name", 6);
+	return $album_name;
+}
+# genAlbumName - Generate a new album name.
+# Input: $baseAlbumName - base name of album.
+# Output: return the newName.
+function genAlbumName($baseAlbumName) {
+	// Determine if the album name 'My Album #2' etc is in use.
+	if (preg_match('/([^#]+) #([\\d]+)/', $baseAlbumName, $regs)) {
+		// If so, increment the number by 1.
+		$newName = $regs[1] . " #" . (intval($regs[2]) + 1);
+	} else {
+		// Else, album name is #2.
+		$newName = $baseAlbumName . " #2";
+	}
+	disp("Generated new album name $newName from $baseAlbumName", 6);
+	// Return the new name
+	return $newName;
+}
+# getCaption - Get the caption for the image based on the mode.
+# Input: $image - Image file to generate caption for.
+# Output: Caption of image file.
+function getCaption($image) {
+	global $root_dir, $mode;
+	$root_dir = substr($root_dir, -1) == "/" ? $root_dir : $root_dir . "/";
+	if ($mode == 1) {
+		# In Mode 1 (where each (sub)directory gets its own album, just use the file name
+		$caption = pathinfo($image, PATHINFO_FILENAME);
+	} elseif ($mode == 2) {
+		# Define the glue for the caption.
+		$glue = " - ";
+		# Replace the root directory with nothing.
+		$dir_structure = explode(DIRECTORY_SEPARATOR, str_replace($root_dir, "", $image));
+		# Generate a caption based on the folder's relative
+		$caption = pathinfo(implode($glue, $dir_structure), PATHINFO_FILENAME);
+	} else {
+		disp("Invalid Mode", 1);
+	}
+	# Trim off excess white spaces.
+	$caption = trim($caption);
+	disp("Got Caption: $caption for $image", 6);
+	return $caption;
+}
