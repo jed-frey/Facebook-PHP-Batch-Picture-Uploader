@@ -6,11 +6,11 @@
 error_reporting(E_ALL | !E_STRICT);
 # Required uploader include files
 require_once ('config.inc.php');
-require_once ('php_batch_uploader/facebook.inc.php');
-require_once ('php_batch_uploader/functions.inc.php');
-require_once ('php_batch_uploader/help.inc.php');
-require_once ('php_batch_uploader/images.inc.php');
-require_once ('php_batch_uploader/upload.inc.php');
+require_once ('includes/facebook.inc.php');
+require_once ('includes/functions.inc.php');
+require_once ('includes/help.inc.php');
+require_once ('includes/images.inc.php');
+require_once ('includes/upload.inc.php');
 # Include required facebook include files.
 if (is_file("facebook-platform/php/facebook.php")) {
 	require_once ("facebook-platform/php/facebook.php");
