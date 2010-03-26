@@ -1,9 +1,7 @@
 <?php
-$batchLimit=15;
-
+$batchLimit = 15;
 function batchPrep($images) {
 }
-
 # Wait for all thumbnail processing threads to finish.
 function waitToProcess($procs) {
 	do {
@@ -20,33 +18,29 @@ function waitToProcess($procs) {
 	while ($running != 0); # While the number running process isn't 0, keep checking.
 	
 }
-
 function getCaptions() {
-
 }
-
-function uploadImages($images,$imageAlbums) {
+function uploadImages($images, $imageAlbums) {
 	$albumImages = getAlbumImages($imageAlbums);
-	$imagesToUpload=array();
-	foreach ($images as $k => $image) {
-		$t["image"]=$image;
-		$t["caption"]=$caption;
-		$imagesToUpload[]=$t;
+	$imagesToUpload = array();
+	foreach($images as $k => $image) {
+		$t["image"] = $image;
+		$t["caption"] = $caption;
+		$imagesToUpload[] = $t;
 	}
-	foreach ($images as $image) {
-		$caption=getCaption($image);
-		if (array_search($caption,$albumImages["caption"])) {
-			disp("Skipping: $image as  '$caption' already uploaded.",4);
+	foreach($images as $image) {
+		$caption = getCaption($image);
+		if (array_search($caption, $albumImages["caption"])) {
+			disp("Skipping: $image as  '$caption' already uploaded.", 4);
 			continue;
 		}
 		list($process, $thumb) = makeThumbBatch($image["image"]);
-		$temp["process"]=$process;
-		$temp["thumb"]=$thumb;
-		$temp["caption"]=$caption;
-		$temp["uploaded"]=FALSE;
+		$temp["process"] = $process;
+		$temp["thumb"] = $thumb;
+		$temp["caption"] = $caption;
+		$temp["uploaded"] = FALSE;
 		$imagesToUpload[$temp];
 	}
-	
 }
 # Upload the photo
 function uploadImage($aids, $image) {
@@ -86,87 +80,84 @@ function uploadImage($aids, $image) {
 	# Return album IDs
 	return $aids;
 }
-
-function arrayExtract($arrays,$field) {
-	foreach ($arrays as $k=>$array) {
-		$array_out[$k]=$array[$field];
+function arrayExtract($arrays, $field) {
+	foreach($arrays as $k => $array) {
+		$array_out[$k] = $array[$field];
 	}
 	return $array_out;
 }
-
 function getAlbumImages($albums) {
 	global $fbo, $batchLimit;
-	$i=0;
+	$i = 0;
 	$fbo->api_client->begin_batch();
-	foreach ($albums["aid"] as $aid) {
+	foreach($albums["aid"] as $aid) {
 		$allAlbumPictures[$i] = & $fbo->api_client->photos_get("", $aid, "");
 		$i++;
-		if (($i % $batchLimit)==0) {
-			disp("Batch execution function limit reached. Executing and beginning new.",6);
+		if (($i % $batchLimit) == 0) {
+			disp("Batch execution function limit reached. Executing and beginning new.", 6);
 			$fbo->api_client->end_batch();
 			$fbo->api_client->begin_batch();
 		}
 	}
 	$fbo->api_client->end_batch();
 	# Merge all of the album pictures into one picture array.
-	$pictures=array();
-	foreach ($allAlbumPictures as $albumPictures) {
-		foreach ($albumPictures as $picture) {
-			$pictures[]=$picture;
+	$pictures = array();
+	foreach($allAlbumPictures as $albumPictures) {
+		foreach($albumPictures as $picture) {
+			$pictures[] = $picture;
 		}
 	}
 	return arrayMutate($pictures);
 	die;
 }
-
 # Get the album ID if the album exists, else create the album and return the ID.
 function getImageAlbums($album_name, $description = "") {
 	global $albums, $fbo, $uid;
 	# Get a list of user albums
-	$albums=getAlbums();
-	$albums2=arrayMutate($albums);
+	$albums = getAlbums();
+	$albums2 = arrayMutate($albums);
 	//$album_name="Road Trip - May 2006";
-	if ($idx[]=array_search($album_name,$albums2["name"])) {
-		disp("Found $album_name",6);
-		for ($i=2;$idx_tmp=array_search("$album_name #$i",$albums2["name"]);$i++) {
-				$idx[]=$idx_tmp;
-				disp("Found $album_name #$i",6);
+	if ($idx[] = array_search($album_name, $albums2["name"])) {
+		disp("Found $album_name", 6);
+		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
+			$idx[] = $idx_tmp;
+			disp("Found $album_name #$i", 6);
 		}
 	} else {
-		disp("$album_name not found. Creating.",2);
+		disp("$album_name not found. Creating.", 2);
 		createAlbums($album_name);
 	}
-	foreach ($idx as $i) {
-		$imageAlbums[]=$albums[$i];
+	foreach($idx as $i) {
+		$imageAlbums[] = $albums[$i];
 	}
-	$imageAlbums=arrayMutate($imageAlbums);
+	$imageAlbums = arrayMutate($imageAlbums);
 	return $imageAlbums;
 	/*
 	# Create Album IDs array
 	$aids = array();
 	# For each of the albums
 	while ($i < count($albums)) {
-		# If the album name is the same as the current increment album
-		if ($albums[$i]['name'] == $albumName) {
-			# Check if album is full.
-			if ($albums[$i]["can_upload"]==0||$albums[$i]['size'] >= 200) { # Limit of 200 photos per album.
-				// If the album is full, generate a new name.
-				disp("$albumName is full", 2);
-				// Build $aid array of all aids associated with current Album Name.
-				$aids[] = $albums[$i]['aid'];
-				// Generate a new album name based on the current name
-				$albumName = genAlbumName($albumName);
-				// Reset search index, start searching from the beginning of album list with the new album
-				$i = 0;
-				continue;
-			} else {
-				// If it is not full, find out the aid.
-				$aids[] = $albums[$i]['aid'];
-				return $aids;
-				break;
-			}
-		}
-		$i++;
+	# If the album name is the same as the current increment album
+	if ($albums[$i]['name'] == $albumName) {
+	# Check if album is full.
+	if ($albums[$i]["can_upload"]==0||$albums[$i]['size'] >= 200) { # Limit of 200 photos per album.
+	// If the album is full, generate a new name.
+	disp("$albumName is full", 2);
+	// Build $aid array of all aids associated with current Album Name.
+	$aids[] = $albums[$i]['aid'];
+	// Generate a new album name based on the current name
+	$albumName = genAlbumName($albumName);
+	// Reset search index, start searching from the beginning of album list with the new album
+	$i = 0;
+	continue;
+	} else {
+	// If it is not full, find out the aid.
+	$aids[] = $albums[$i]['aid'];
+	return $aids;
+	break;
+	}
+	}
+	$i++;
 	}
 	disp("Create Album: $albumName ($description)", 5);
 	$aids[] = $album['aid'];
@@ -177,11 +168,10 @@ function getImageAlbums($album_name, $description = "") {
 # Input: $image - Image to get the album base for.
 function getAlbumBase($image) {
 	global $root_dir, $mode;
-	$album_name =($mode == 1)? basename(dirname($image)):basename($root_dir);
-	disp("Generating Album Base Name: $album_name",6);
+	$album_name = ($mode == 1) ? basename(dirname($image)) : basename($root_dir);
+	disp("Generating Album Base Name: $album_name", 6);
 	return $album_name;
 }
-
 # genAlbumName - Generate a new album name.
 # Input: $baseAlbumName - base name of album.
 # Output: return the newName.

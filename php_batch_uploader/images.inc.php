@@ -8,7 +8,7 @@ function makeThumbBatch($file) {
 	disp("Make Thumbnail: $file", 6);
 	# global variable for converter.
 	$temp_file = tempnam("/tmp", "fbi_"); # Generate a temp file where the thumbnails will be put before uploading.
-	$input = escapeshellarg($file);			  # Input File
+	$input = escapeshellarg($file); # Input File
 	$output = escapeshellarg($temp_file); # Output file.
 	# create command to create thumbnail
 	$command = "$converter -format JPG -quality $photoQuality -size $photoSize -resize $photoSize +profile '*' $input $output";
@@ -20,7 +20,6 @@ function makeThumbBatch($file) {
 	# Return output.
 	return $ret;
 }
-
 # folderScan - Scan folder for images and directories
 # Input: $dir - Directory to scan
 # Output: Associative array with all the [images] and [directories] that the input directory contains.
@@ -54,7 +53,6 @@ function folderScan($dir) {
 	}
 	return $result;
 }
-
 # getConverter - Find the conversion utility. (Image Magick or Graphics Magick)
 # Input: $path - specified path to converter.
 # Output: path to converter is assigned to $converter global.
@@ -92,7 +90,6 @@ function getConverter($path = NULL) {
 	# In case it has spaces in the name.
 	$converter = escapeshellcmd($converter);
 }
-
 # hasExt - Determine if file has an extension.
 # Input: $file - file with extension
 #		 $findExt - string or array of strings of extensions to compare to.

@@ -1,6 +1,6 @@
 <?php
 # printHelp - Display Help Function
-function printHelp($help="") {
+function printHelp($help = "") {
 	$help.= <<<EOF
 Usage:  php_batch_uploader.php [-m MODE] [-v VERBOSITY] dirs
         php_batch_uploader.php -a AUTH
