@@ -49,7 +49,7 @@ function uploadImages($images, $imageAlbums) {
 				disp("Uploaded: ".$imagesToUpload[$i]["image"],3);
 				$j++;
 			} catch (Exception $e) {
-				disp($e->getMessage,5);break;
+				disp($e->getMessage(),5);break;
 				switch ($e->getCode()) {
 					case 1:
 					case 2:
