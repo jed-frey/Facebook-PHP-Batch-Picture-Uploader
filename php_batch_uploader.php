@@ -1,16 +1,11 @@
 #!/opt/local/bin/php
 <?php
-# Batch Branch
-# Test
-$converterPath = NULL; # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
-$albumLimit = 200; # Limit the number of photos per album to this. Currently 200 in facebook.
-$photoSize = "720x720"; # Resize to max facebook photo size. Currently 720x720 in facebook.
-$photoQuality = 80; # JPEG Quality to resize with.
 ####
 # Here Be Dragons.
 ####
 error_reporting(E_ALL | !E_STRICT);
 # Required uploader include files
+require_once ('config.inc.php');
 require_once ('php_batch_uploader/facebook.inc.php');
 require_once ('php_batch_uploader/functions.inc.php');
 require_once ('php_batch_uploader/help.inc.php');
