@@ -8,7 +8,7 @@ function getAlbums() {
 	return $albums;
 }
 # getAlbums - Get all current facebook albums
-function createAlbums($name) {
+function createAlbum($name) {
 	global $fbo;
 	disp("Creating album: $name", 6);
 	try {
@@ -18,11 +18,10 @@ function createAlbums($name) {
 		disp("Failed to create album $album", 1);
 	}
 	# Created albums do not have the following parameters.
-	$albums[0]["can_upload"] = 1;
-	$albums[0]["size"] = 0;
-	$albums[0]["type"] = "normal";
-	return $albums;
-	return $albums;
+	$album["can_upload"] = 1;
+	$album["size"] = 0;
+	$album["type"] = "normal";
+	return $album;
 }
 # getImages - Get all current images album(s)
 function getImages($aids) {

@@ -1,4 +1,5 @@
 <?php
+
 # Script to test functions.
 
 # Required uploader include files
@@ -18,7 +19,16 @@ print_r($t);
 print_r($t=arrayMutate($t));
 print_r($t=arrayMutate($t));
 */
-
+$c=72;
+$j=0;
+for ($i=0;($i)<$c;$i+=10) {
+	for ($j=0;($i+$j)<$c&&$j<10;$j++) {
+		$k=$j+$i;
+		list(makeThumbBatch
+		echo $k."\n";
+	}
+}
+/*
 helloCounter();
 helloCounter();
 helloCounter();
@@ -28,3 +38,4 @@ function helloCounter() {
 	$a++;
 	var_dump($a);
 }
+*/

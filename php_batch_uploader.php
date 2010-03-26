@@ -106,13 +106,11 @@ function recursiveUpload($dir) {
 	$result = folderScan($dir);
 	# If the number of images in directory is greater than 1.
 	if (count($result['images']) > 0) {
-		disp("Get Album ID", 6);
 		# Get album base name.
-		$albumBase = getAlbumBase($result['images'][0]);
+		$albumBase = "FWRC Snow Bowl '08";#getAlbumBase($result['images'][0]);
 		# Get current albums associated with the base name.
-		$imageAlbums = getImageAlbums(getAlbumBase($result['images'][0]));
+		$imageAlbums = getImageAlbums($albumBase);
 		uploadImages($result["images"], $imageAlbums);
-		uploadImages($result["images"]);
 		# If you have a large directory that you've already partially uploaded, you will hit the
 		# API request limit and have to take a time out.
 		$errors = 1;
