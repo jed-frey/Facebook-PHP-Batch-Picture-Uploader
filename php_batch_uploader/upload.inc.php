@@ -1,7 +1,5 @@
 <?php
 $batchLimit = 15;
-function batchPrep($images) {
-}
 # Wait for all thumbnail processing threads to finish.
 function waitToProcess($procs) {
 	if (!is_array($procs)) $procs=array($procs);
@@ -24,7 +22,7 @@ function uploadImages($images, $imageAlbums) {
 	$imagesToUpload = array();
 	foreach($images as $image) {
 		$caption = getCaption($image);
-		if (array_search($caption, $albumImages["caption"])) {
+		if (array_key_exists("caption",$albumImages)&&array_search($caption, $albumImages["caption"])) {
 			disp("Skipping: $image as  '$caption' already uploaded.", 4);
 			continue;
 		}
@@ -35,27 +33,53 @@ function uploadImages($images, $imageAlbums) {
 		$temp["thumb"] = $thumb;
 		$temp["caption"] = $caption;
 		$temp["uploaded"] = false;
+		$temp["errors"] = 0;
 		$imagesToUpload[]=$temp;
 	}
 	while (1) {
 		$j=0;
 		for ($i=0;$i<count($imagesToUpload);$i++) {
 			if ($imagesToUpload[$i]["uploaded"]) continue;
+			disp("Waiting for processing to finish on: ".$imagesToUpload[$i]["caption"],5); 
 			waitToProcess($imagesToUpload[$i]["process"]);		
-			$fbReturn[$j] = $fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums,$uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
-			$imageAlbums["size"][$uploadAlbumIdx]++;
-			die(array($fbReturn,$imageAlbums,$imagesToUpload));
+			try {
+				$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums,$uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
+				$imageAlbums["size"][$uploadAlbumIdx]++;
+				$imagesToUpload[$i]["uploaded"]=true;
+				disp("Uploaded: ".$imagesToUpload[$i]["image"],3);
+				$j++;
+			} catch (Exception $e) {
+				disp($e->getMessage,5);break;
+				switch ($e->getCode()) {
+					case 1:
+					case 2:
+					case 5:
+						disp("Non-fatal error: ".$e->getMessage(),3);break;
+					case 100:
+					case 101:
+					case 103:
+					case 104:
+					case 120:
+					case 200:
+						disp("Fatal error: ".$e->getMessage()."\n Please submit a bug report: http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader",1);break;
+					case 102:
+						disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+					case 321:
+						disp($e->getMessage().". Should have been caught earlier.",3);	
+						$imageAlbums["size"][$uploadAlbumIdx]=200;
+						$imageAlbums["can_upload"][$uploadAlbumIdx]=0;
+						break;
+					case 324:
+						disp($e->getMessage().". Bad Graphics/ImageMagick output? Skipping ".$imagesToUpload[$i]["image"],3);
+						$imagesToUpload[$i]["uploaded"]=true;break;
+					case 325:
+						disp($e->getMessage().". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n\n",1);break;
+				}
+				$imagesToUpload[$i]["errors"]++;
+			}
 		}
-		if ($j=0) break;
+		if ($j==0) break;
 	}
-	
-	/*
-	for ($i=0;($i+$j)<$c;$i+=10) {
-		for ($j=0;($i+$j)<$c&&$j<10;$j++) {
-			$k=$j+$i;
-			
-		}
-	}*/
 }
 
 function getUploadAID(&$imageAlbums,&$uploadAlbumIdx) {
@@ -72,46 +96,6 @@ function getUploadAID(&$imageAlbums,&$uploadAlbumIdx) {
 	$aid=$imageAlbums["aid"][$uploadAlbumIdx];
 	return $aid;
 }
-# Upload the photo
-/*
-function uploadImage($aids, $image) {
-	global $fbo, $temp_file;
-	$errors = 1;
-	while (1) {
-		try {
-			# Make the thumbnail.
-			# Get the album caption
-			$caption = getCaption($image);
-			# Upload the photo
-			#$fbReturn = $fbo->api_client->photos_upload($temp_file, end($aids), $caption);
-			# If the image was uploaded successfully
-			disp("Uploaded: $image", 2);
-			# Break the while loop
-			break;
-			# Catch exception
-			
-		}
-		catch(Exception $e) {
-			if ($e->getMessage() == "Album is full") {
-				# If the album is full, get a new album name & return album ids
-				$aids = getAlbumId(getAlbumBase($image));
-				# Give the uploader 2 chances to generate thumbnail and upload picture
-				
-			} elseif ($errors >= 2) {
-				# Display error and continue on
-				disp("Unexpected Error #$errors: " . $e->getMessage() . ", skipping $image", 1);
-			} else {
-				disp("Unexpected Error #$errors: " . $e->getMessage(), 2);
-				$errors++;
-				# Occasionally happens when there are too many API requests, slow it down.
-				sleep(2);
-			}
-		}
-	}
-	# Return album IDs
-	return $aids;
-}
-*/
 
 function getAlbumImages($albums) {
 	global $fbo, $batchLimit;
@@ -121,21 +105,24 @@ function getAlbumImages($albums) {
 		$allAlbumPictures[$i] = & $fbo->api_client->photos_get("", $aid, "");
 		$i++;
 		if (($i % $batchLimit) == 0) {
-			disp("Batch execution function limit reached. Executing and beginning new.", 6);
+			disp("Batch execution function limit reached. Executing and beginning new batch.", 5);
 			$fbo->api_client->end_batch();
 			$fbo->api_client->begin_batch();
 		}
 	}
 	$fbo->api_client->end_batch();
 	# Merge all of the album pictures into one picture array.
-	$pictures = array();
+	$albumImages = array();
 	foreach($allAlbumPictures as $albumPictures) {
-		foreach($albumPictures as $picture) {
-			$pictures[] = $picture;
+		if (is_array($albumPictures)) {
+			foreach($albumPictures as $picture) {
+				$albumImages[] = $picture;
+			}
 		}
 	}
-	return arrayMutate($pictures);
+	return arrayMutate($albumImages);
 }
+
 # Get the album ID if the album exists, else create the album and return the ID.
 function getImageAlbums($album_name) {
 	global $albums, $fbo, $uid;

@@ -16,7 +16,7 @@ function makeThumbBatch($file) {
 	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
 	# Fork process
 	$ret[0] = proc_open($command, $descriptorspec, $pipes);
-	$ret[1] = $output;
+	$ret[1] = $temp_file;
 	# Return output.
 	return $ret;
 }

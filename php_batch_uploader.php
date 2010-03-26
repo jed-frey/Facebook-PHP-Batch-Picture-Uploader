@@ -107,56 +107,10 @@ function recursiveUpload($dir) {
 	# If the number of images in directory is greater than 1.
 	if (count($result['images']) > 0) {
 		# Get album base name.
-		$albumBase = "FWRC Snow Bowl '08";#getAlbumBase($result['images'][0]);
+		$albumBase = getAlbumBase($result['images'][0]);
 		# Get current albums associated with the base name.
 		$imageAlbums = getImageAlbums($albumBase);
 		uploadImages($result["images"], $imageAlbums);
-		# If you have a large directory that you've already partially uploaded, you will hit the
-		# API request limit and have to take a time out.
-		$errors = 1;
-		while (1) {
-			try {
-				# Get pictures in all albums associated with the folder. In batch mode
-				$fbo->api_client->begin_batch();
-				for ($i = 0;$i < count($aids);$i++) {
-					$pictures[$i] = & $fbo->api_client->photos_get("", $aids[$i], "");
-				}
-				$fbo->api_client->end_batch();
-				break;
-			}
-			catch(Exception $e) {
-				if ($errors > 20) disp("Too many errors checking for photos.", 1);
-				# Walk it off
-				sleep(5);
-				$errors++;
-			}
-		}
-		disp("Building 'Seen Photos' Array.", 6);
-		# For each image
-		foreach($result['images'] as $image) {
-			# Check if the image already exists.
-			if (imageExists($pictures, $image)) {
-				disp("Image Exists:" . $image . " ... skipping", 3);
-			} else {
-				$imagesToUpload[] = $image;
-			}
-		}
-		$batchSize = 10;
-		$c = count($imagesToUpload);
-		for ($i = 0;$i < $c;$i+= $batchSize) {
-			for ($j = 0;($j < $batchSize & ($j + $i) < $c);$j++) {
-				$k = $i + $j;
-				list($process[$j], $images[$j]) = makeThumb($imagesToUpload[$k]);
-			}
-			$batch = batchPrep($images);
-			print_r($process);
-			die;
-			waitToProcess($process);
-			uploadImages($process);
-			die;
-		}
-		die;
-		$aids = uploadImage($aids, $image);
 	}
 	# For each directory. Recursively upload photos
 	foreach($result['directories'] as $dir) {

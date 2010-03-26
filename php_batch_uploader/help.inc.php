@@ -19,11 +19,11 @@ Usage:  php_batch_uploader.php [-m MODE] [-v VERBOSITY] dirs
   -v    Script verbosity.
             0: Display nothing, not even warnings or errors
             1: Display only errors which cause the script to exit.
-            2: Display errors and warnings. [Default]
-            3: Display everything. (When file is uploaded, when a file is skipped, errors & warnings)
-            4: Display everything w/time stamp when event occured since script start.
-			5: Display everything w/time stamp since last message.
-			6: Debug. Display debug w/time stamp since last message.
+            2: Display only errors and warnings. [Default]
+            3: Display everything. (When file is uploaded, when a file is skipped, errors & warnings) w/time stamp when event occured since script start.
+            4: Display everything. (When file is uploaded, when a file is skipped, errors & warnings) w/time stamp since last message.
+            5: Debug output w/time stamp when event occured since script start.
+            6: Debug output w/time stamp since last message.
 			
   dirs  Directories passed to script. These are the folders that are uploaded to facebook.
 

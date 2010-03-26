@@ -61,12 +61,12 @@ function disp($message, $level) {
 function getDuration($verbosity) {
 	global $start_time;
 	$elapsed = round(microtime(true) - ($start_time), 3);
-	# For verbrosity <5, just display time since the beginning. For vebrosity >=5, show elapsed time between events.
-	if ($verbosity >= 5) $start_time = microtime(true);
+	# For verbrosity 3/5, just display time since the beginning. For vebrosity 4/6, show elapsed time between events.
+	if (($verbosity % 2)==0) $start_time = microtime(true);
 	return $elapsed;
 }
 function pd($X = array()) {
 	print_r($X);
-	file_put_contents("/home/jafrey/exstatic.org/test.txt", print_r($X, 1));
+	file_put_contents("test.txt", print_r($X, 1));
 	die;
 }
