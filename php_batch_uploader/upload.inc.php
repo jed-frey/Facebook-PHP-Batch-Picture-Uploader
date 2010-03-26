@@ -4,6 +4,7 @@ function batchPrep($images) {
 }
 # Wait for all thumbnail processing threads to finish.
 function waitToProcess($procs) {
+	if (!is_array($procs)) $procs=array($procs);
 	do {
 		# Set the count of running processes to 0.
 		$running = 0;
@@ -18,35 +19,58 @@ function waitToProcess($procs) {
 	while ($running != 0); # While the number running process isn't 0, keep checking.
 }
 function uploadImages($images, $imageAlbums) {
+	global $fbo;
 	$albumImages = getAlbumImages($imageAlbums);
 	$imagesToUpload = array();
-	foreach($images as $k => $image) {
-		$t["image"] = $image;
-		$t["caption"] = $caption;
-		$imagesToUpload[] = $t;
-	}
 	foreach($images as $image) {
 		$caption = getCaption($image);
 		if (array_search($caption, $albumImages["caption"])) {
 			disp("Skipping: $image as  '$caption' already uploaded.", 4);
 			continue;
 		}
-		list($process, $thumb) = makeThumbBatch($image["image"]);
+		list($process, $thumb) = makeThumbBatch($image);
+		$temp["image"] = $image;
+		$temp["caption"] = $caption;
 		$temp["process"] = $process;
 		$temp["thumb"] = $thumb;
 		$temp["caption"] = $caption;
-		$temp["uploaded"] = FALSE;
+		$temp["uploaded"] = false;
 		$imagesToUpload[]=$temp;
 	}
-	print_r($imagesToUpload);
-	print_r($imageAlbums);
-	die;
-	$c=count($imagesToUpload);
+	while (1) {
+		$j=0;
+		for ($i=0;$i<count($imagesToUpload);$i++) {
+			if ($imagesToUpload[$i]["uploaded"]) continue;
+			waitToProcess($imagesToUpload[$i]["process"]);		
+			$fbReturn[$j] = $fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums,$uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
+			$imageAlbums["size"][$uploadAlbumIdx]++;
+			die(array($fbReturn,$imageAlbums,$imagesToUpload));
+		}
+		if ($j=0) break;
+	}
+	
+	/*
 	for ($i=0;($i+$j)<$c;$i+=10) {
 		for ($j=0;($i+$j)<$c&&$j<10;$j++) {
 			$k=$j+$i;
+			
 		}
+	}*/
+}
+
+function getUploadAID(&$imageAlbums,&$uploadAlbumIdx) {
+	static $uploadAlbumIndex;
+	$uploadAlbumIdx=array_search(1,$imageAlbums["can_upload"]);
+	if ($uploadAlbumIndex===false||$imageAlbums["size"][$uploadAlbumIdx]>=200) {
+		$newAlbumName=genAlbumName(end($imageAlbums["name"]));
+		$newAlbum=createAlbum($newAlbumName);
+		foreach ($newAlbum as $key => $value) {
+			$imageAlbums[$key][]=$value;
+		}
+		$uploadAlbumIdx=count($imageAlbums["name"])-1;
 	}
+	$aid=$imageAlbums["aid"][$uploadAlbumIdx];
+	return $aid;
 }
 # Upload the photo
 /*
@@ -105,15 +129,12 @@ function getAlbumImages($albums) {
 	$fbo->api_client->end_batch();
 	# Merge all of the album pictures into one picture array.
 	$pictures = array();
-	var_dump($allAlbumPictures);
-	die;
 	foreach($allAlbumPictures as $albumPictures) {
 		foreach($albumPictures as $picture) {
 			$pictures[] = $picture;
 		}
 	}
 	return arrayMutate($pictures);
-	die;
 }
 # Get the album ID if the album exists, else create the album and return the ID.
 function getImageAlbums($album_name) {
