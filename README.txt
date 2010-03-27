@@ -1,31 +1,35 @@
 Requirements: 
 	php5 (http://php.net)
-	*NIX like OS (Linux, OS X, etc). Windows might work, but has not been tested.
+	*NIX like OS (Linux, OS X, etc). Windows might work but will not been tested against.
 	Graphics Magick (http://www.graphicsmagick.org/) 
 		or
 	ImageMagick (http://www.imagemagick.org/)
 		apt-get install graphicsmagick | apt-get install imagemagick - Debian or Ubuntu
-		ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed.
+		ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed http://www.imagemagick.org/script/binary-releases.php#macosx
+	Optional: dcraw (GraphicsMagick) or ufraw (ImageMagick) for raw images.
 	Some command line knowledge.
 	
 Installation:
 	Move the php_batch_uploader folder to anywhere you wish.
-	0) Open Terminal window and change to php_batch_uploader folder. (cd php_batch_uploader)
-	1) Download the latest version of the Facebook PHP client library: 
+	0) Download php_batch_uploader
+		a) Latest version, master will always be 'operational' "git clone git://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader.git php_batch_uploader"
+		b) Latest release. None yet.
+	1) Open terminal window and change to php_batch_uploader folder.
+	2) Download the latest version of the Facebook PHP client library: 
 		./getFacebookPHPlibrary.sh
-	2a) Run the script directly. You may have to edit the first line to point to your php install. `which php`
+	3a) Run the script directly. You may have to edit the first line to point to your php install. Use 'which php'
 		./php_batch_uploader ~/Pictures/
-	2b) Run the script through php. 
+	3b) Run the script through php. 
 		php php_batch_uploader ~/Pictures/
-	2c) Add the php_batch_uploader directory to your PATH and run.
+	3c) Add the php_batch_uploader directory to your PATH and run.
 			# In the php_batch_uploader directory.
 			PATH=`pwd`:$PATH
 			cd ~/Pictures;php_batch_uploader ./
-	
-Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] directories
-        php_batch_uploader -a AUTH
+----------------------------------------------------------------------------------------
+Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-raw] directories
+        php_batch_uploader -a auth
 	   
-  -a    Facebook Authentication Code. Must be used the first time the script is run.
+  -a    Facebook Authentication Code. Must be used before the script can upload anything.
             Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038
             to authorize php_batch_uploader and generate code.
 
@@ -33,21 +37,25 @@ Usage:  php_batch_uploader [-m MODE] [-v VERBOSITY] directories
             http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload 
   
   -m    Upload Mode.
-            1: Upload each directory & subdirectory as album name. Caption based on image name or EXIF caption. [Default]
-            2: Use the top level directory input as album name. Create caption based on subdirectories & image name or EXIF Caption.
-            h: Display detailed information about how each of the modes works, with examples
+            1: Upload each directory & subdirectory as album name. Caption based on image name. [Default]
+            2: Use the top level directory input as album name. Create caption based on subdirectories & image name. [Default with Album name set]
+            h: Display detailed information about how each of the modes works, with examples.		
+
+  -n    Album name. Sets mode to 2 and uploads all images to specified album.
 
   -v    Script verbosity.
-            0: Display nothing, not even warnings or errors
+            0: Display nothing, not even warnings or fatal errors.
             1: Display only errors which cause the script to exit.
             2: Display errors and warnings. [Default]
-            3: Display everything. (When file is uploaded, etc)
-            4: Display everything w/time stamp when event occurred.
-			5: Display everything w/time stamp since last message.
-			6: Debug. Display everything  w/time stamp since last message.
+            3: Display everything w/time stamp when event occurred.
+            4: Display everything w/time stamp since last message.
+			5: Debug w/time stamp when event occurred.
+			6: Debug w/time stamp since last message.
+
+  -nr    Disable recursion. Only upload images in the specified folders.
   
   directories  Directories passed to script. These are the folders that are uploaded to Facebook.
-
+----------------------------------------------------------------------------------------
 Modes Explained:
     Each of the modes will recursively upload all images and folders in a given directory. 
     The only way in which they differ is how the files are captioned and the album names that they are put into.
@@ -55,6 +63,7 @@ Modes Explained:
     Mode 1 (-m 1):
         Uses the directory that the file is in as the Album Name. 
         The image is then captioned as the image name minus extension or EXIF Caption.
+
     Mode 2 (-m 2):
         Uses the directory(s) passed to the script as the as Album Name. 
         The image is then captioned with the relative path to the image and the image minus extension or EXIF Caption.
@@ -67,6 +76,7 @@ Modes Explained:
         5) ~/pictures/2009/Road Trips/Road Trip #.jpg, etc
 
     Called with "[php] php_batch_uploader ~/pictures/2008 ~/pictures/2009"
+
     Mode 1:
         1) Album "Road Trips" is created and all images are uploaded with caption "Road Trip #"
         2) Album "Vegas" is created and and all images is uploaded with caption "Vegas #"
