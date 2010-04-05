@@ -24,9 +24,11 @@ function makeThumbBatch($file) {
 # Input: $dir - Directory to scan
 # Output: Associative array with all the [images] and [directories] that the input directory contains.
 function folderScan($dir) {
+	global $raw;
 	disp("Scanning Folder: $dir", 6);
 	# Define image extensions in lower case.
 	$imgExt = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff');
+	if ($raw) $imgExt=array_merge($imgExt,array('dng','cr2'));
 	# Add trailing slash to directory if it doesn't exist already.
 	$dir = substr($dir, -1) == "/" ? $dir : $dir . "/";
 	# Create arrays

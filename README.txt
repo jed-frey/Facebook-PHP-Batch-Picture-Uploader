@@ -69,7 +69,7 @@ Modes Explained:
         The image is then captioned with the relative path to the image and the image minus extension or EXIF Caption.
 
     Example, for the sample folder structure below:
-        1) ~/pictures/2008/Road Trips/Road Trip#.jpg, etc
+        1) ~/pictures/2008/Road Trips/Road Trip #.jpg, etc
         2) ~/pictures/2008/Road Trips/Vegas/Vegas #.jpg, etc
         3) ~/pictures/2008/Road Trips/Grand Canyon/GC # .jpg,etc 
         4) ~/pictures/2009/New Years Eve/Down Town/Fireworks/FireWorks #.jpg, etc
@@ -78,25 +78,33 @@ Modes Explained:
     Called with "[php] php_batch_uploader ~/pictures/2008 ~/pictures/2009"
 
     Mode 1:
-        1) Album "Road Trips" is created and all images are uploaded with caption "Road Trip #"
-        2) Album "Vegas" is created and and all images is uploaded with caption "Vegas #"
-        3) Album "Grand Canyon" is created and and all images is uploaded with caption "GC #"
-        4) Album "Fireworks" is created and and all images is uploaded with caption "FireWorks #"
-        5) Because album "Road Trips" already exists, all images in this folder will be uploaded to the existing Album.
+        1) Album 'Road Trips' is created and all images are uploaded with caption "Road Trip #"
+        2) Album 'Vegas' is created and and all images is uploaded with caption "Vegas #"
+        3) Album 'Grand Canyon' is created and and all images is uploaded with caption "GC #"
+        4) Album 'Fireworks' is created and and all images is uploaded with caption "FireWorks #"
+        5) Because album 'Road Trips' already exists, all images in this folder will be uploaded to the existing Album.
 
     Mode 2:
-        ~/pictures/2008 & ~/pictures/2009 are the input directories, "2008" and "2009" will be the Album Names, respectively
-        Since "2008" & "2009" is the root directory, images in sub folders will be uploaded into these two albums.
-        1) Album 2008 is created, images will be captioned with "Road Trips - Road Trip #"
-        2) Album 2008 is used, images will be captioned with "Road Trips - Vegas - Vegas #"
-        3) Album 2008 is used, images will be captioned with "Road Trips - Grand Canyon - GC #"
-        4) Album 2009 is created, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
-        5) Album 2009 is used, images will be captioned with "Road Trips - Road Trip#
+        ~/pictures/2008 & ~/pictures/2009 are the input directories, '2008' and '2009' will be the Album Names, respectively
+        Since '2008' & '2009' is the root directory, images in sub folders will be uploaded into these two albums.
+        1) Album '2008' is created, images will be captioned with "Road Trips - Road Trip #"
+        2) Album '2008' is used, images will be captioned with "Road Trips - Vegas - Vegas #"
+        3) Album '2008' is used, images will be captioned with "Road Trips - Grand Canyon - GC #"
+        4) Album '2009' is created, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
+        5) Album '2009' is used, images will be captioned with "Road Trips - Road Trip#
 
+	Mode 2 with album specified.
+		Called with "[php] php_batch_uploader -n "My Life" ~/pictures/2008 ~/pictures/2009"
+		1) Album 'My Life' is created, images will be captioned with "Road Trips - Road Trip #"
+        2) Album 'My Life' is used, images will be captioned with "Road Trips - Vegas - Vegas #"
+        3) Album 'My Life' is used, images will be captioned with "Road Trips - Grand Canyon - GC #"
+        4) Album 'My Life' is used, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
+        5) Album 'My Life' is used, images will be captioned with "Road Trips - Road Trip#
+	    
     Caveat:
         The captions are used to determine unique pictures. In the above example, in mode 1, 
         if you had a 2008/Road Trips/1.jpg & 2009/Roadtrips/1.jpg, the second image will be skipped 
-        because the script thinks it's the same picture.
+        because the script will think it's the same picture.
 
     Beware of how your shell script interprets inputs for mode 2
         For example, in bash,  php_batch_uploader ~/pictures/ & php_batch_uploader ~/pictures/* are not the same.
