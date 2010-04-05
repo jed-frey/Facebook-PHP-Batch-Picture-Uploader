@@ -29,7 +29,7 @@ function uploadImages($images, $imageAlbums) {
 			$z = $a + $b;
 			$image = $images[$z];
 			$caption = getCaption($image);
-			if (array_key_exists("caption", $albumImages) && array_search($caption, $albumImages["caption"])) {
+			if (array_key_exists("caption", $albumImages) && array_search($caption, $albumImages["caption"])!==false) {
 				disp("Skipping: $image as '$caption' already uploaded.", 4);
 				continue;
 			}
