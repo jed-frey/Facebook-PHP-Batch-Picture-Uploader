@@ -25,8 +25,8 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
             2: Display errors and warnings. [Default]
             3: Display everything w/time stamp when event occurred.
             4: Display everything w/time stamp since last message.
-			5: Debug w/time stamp when event occurred.
-			6: Debug w/time stamp since last message.
+            5: Debug w/time stamp when event occurred.
+            6: Debug w/time stamp since last message.
 
   -nr    Disable recursion. Only upload images in the specified folders.
 
