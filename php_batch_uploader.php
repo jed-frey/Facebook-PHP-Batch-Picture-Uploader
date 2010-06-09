@@ -1,4 +1,4 @@
-#!php
+#!/opt/local/bin/php
 <?php
 ####
 # Here Be Dragons.
@@ -12,11 +12,11 @@ require_once ('includes/help.inc.php');
 require_once ('includes/images.inc.php');
 require_once ('includes/upload.inc.php');
 # Include required facebook include files.
-if (is_file("facebook-platform/php/facebook.php")) {
+try {
 	require_once ("facebook-platform/php/facebook.php");
 	require_once ("facebook-platform/php/facebook_desktop.php");
 	require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
-} else {
+} catch(Exception $e) {
 	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh", 0);
 }
 $start_time = microtime(true); # Start timer
@@ -94,7 +94,7 @@ die;
 # recursiveUpload - Recursively upload photos
 # Input: $dir - directory to start recursing from.
 function recursiveUpload($dir) {
-	global $fbo;
+	global $fbo,$nr;
 	# Start the recursive upload.
 	disp("Recursively uploading: $dir", 6);
 	# Scan the folder for directories and images
@@ -108,6 +108,7 @@ function recursiveUpload($dir) {
 		uploadImages($result["images"], $imageAlbums);
 	}
 	# For each directory. Recursively upload photos
+	if ($nr) return;
 	foreach($result['directories'] as $dir) {
 		recursiveUpload($dir);
 	}

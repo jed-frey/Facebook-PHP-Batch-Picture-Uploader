@@ -62,7 +62,7 @@ function getDuration($verbosity) {
 	global $start_time;
 	$elapsed = round(microtime(true) - ($start_time), 3);
 	# For verbrosity 3/5, just display time since the beginning. For vebrosity 4/6, show elapsed time between events.
-	if (($verbosity % 2)==0) $start_time = microtime(true);
+	if (($verbosity % 2) == 0) $start_time = microtime(true);
 	return $elapsed;
 }
 function pd($X = array()) {

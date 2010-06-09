@@ -1,8 +1,7 @@
 <?php
-$batchLimit = 15;
 # Wait for all thumbnail processing threads to finish.
 function waitToProcess($procs) {
-	if (!is_array($procs)) $procs=array($procs);
+	if (!is_array($procs)) $procs = array($procs);
 	do {
 		# Set the count of running processes to 0.
 		$running = 0;
@@ -15,88 +14,106 @@ function waitToProcess($procs) {
 		}
 	}
 	while ($running != 0); # While the number running process isn't 0, keep checking.
+	
 }
 function uploadImages($images, $imageAlbums) {
 	global $fbo;
 	$albumImages = getAlbumImages($imageAlbums);
-	$imagesToUpload = array();
-	foreach($images as $image) {
-		$caption = getCaption($image);
-		if (array_key_exists("caption",$albumImages)&&array_search($caption, $albumImages["caption"])) {
-			disp("Skipping: $image as  '$caption' already uploaded.", 4);
-			continue;
+	$c = count($images);
+	$a = 0;
+	$b = 0;
+	$batchSize = 10;
+	for ($a = 0;$a < $c;$a+=$batchSize) {
+		$imagesToUpload = array();
+		for ($b = 0;$b < $batchSize && ($a + $b) < $c;$b++) {
+			$z = $a + $b;
+			$image = $images[$z];
+			$caption = getCaption($image);
+			if (array_key_exists("caption", $albumImages) && array_search($caption, $albumImages["caption"])!==false) {
+				disp("Skipping: $image as '$caption' already uploaded.", 4);
+				continue;
+			}
+			list($process, $thumb) = makeThumbBatch($image);
+			$temp["image"] = $image;
+			$temp["caption"] = $caption;
+			$temp["process"] = $process;
+			$temp["thumb"] = $thumb;
+			$temp["caption"] = $caption;
+			$temp["uploaded"] = false;
+			$temp["errors"] = 0;
+			$imagesToUpload[] = $temp;
 		}
-		list($process, $thumb) = makeThumbBatch($image);
-		$temp["image"] = $image;
-		$temp["caption"] = $caption;
-		$temp["process"] = $process;
-		$temp["thumb"] = $thumb;
-		$temp["caption"] = $caption;
-		$temp["uploaded"] = false;
-		$temp["errors"] = 0;
-		$imagesToUpload[]=$temp;
-	}
-	while (1) {
-		$j=0;
-		for ($i=0;$i<count($imagesToUpload);$i++) {
-			if ($imagesToUpload[$i]["uploaded"]) continue;
-			disp("Waiting for processing to finish on: ".$imagesToUpload[$i]["caption"],5); 
-			waitToProcess($imagesToUpload[$i]["process"]);		
-			try {
-				$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums,$uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
-				$imageAlbums["size"][$uploadAlbumIdx]++;
-				$imagesToUpload[$i]["uploaded"]=true;
-				disp("Uploaded: ".$imagesToUpload[$i]["image"],3);
-				$j++;
-			} catch (Exception $e) {
-				disp($e->getMessage(),5);break;
-				switch ($e->getCode()) {
-					case 1:
-					case 2:
-					case 5:
-						disp("Non-fatal error: ".$e->getMessage(),3);break;
-					case 100:
-					case 101:
-					case 103:
-					case 104:
-					case 120:
-					case 200:
-						disp("Fatal error: ".$e->getMessage()."\n Please submit a bug report: http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader",1);break;
-					case 102:
-						disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
-					case 321:
-						disp($e->getMessage().". Should have been caught earlier.",3);	
-						$imageAlbums["size"][$uploadAlbumIdx]=200;
-						$imageAlbums["can_upload"][$uploadAlbumIdx]=0;
-						break;
-					case 324:
-						disp($e->getMessage().". Bad Graphics/ImageMagick output? Skipping ".$imagesToUpload[$i]["image"],3);
-						$imagesToUpload[$i]["uploaded"]=true;break;
-					case 325:
-						disp($e->getMessage().". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n\n",1);break;
+		while (1) {
+			$j = 0;
+			for ($i = 0;$i < count($imagesToUpload);$i++) {
+				if ($imagesToUpload[$i]["uploaded"]) continue;
+				disp("Waiting for processing to finish on: " . $imagesToUpload[$i]["caption"], 5);
+				waitToProcess($imagesToUpload[$i]["process"]);
+				try {
+					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
+					$imageAlbums["size"][$uploadAlbumIdx]++;
+					$imagesToUpload[$i]["uploaded"] = true;
+					disp("Uploaded: " . $imagesToUpload[$i]["image"], 3);
+					$j++;
 				}
-				$imagesToUpload[$i]["errors"]++;
+				catch(Exception $e) {
+					disp($e->getCode() . " " . $e->getMessage(), 5);
+					switch ($e->getCode()) {
+						case 1:
+						case 2:
+						case 5:
+							disp("Non-fatal error: " . $e->getMessage(), 3);
+						break;
+						case 100:
+						case 101:
+						case 103:
+						case 104:
+						case 120:
+						case 200:
+							disp("Fatal error: " . $e->getMessage() . "\n Please submit a bug report: http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader", 1);
+						break;
+						case 102:
+							disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+						case 321:
+							disp($e->getMessage() . ". Should have been caught earlier.", 3);
+							$imageAlbums["size"][$uploadAlbumIdx] = 200;
+							$imageAlbums["can_upload"][$uploadAlbumIdx] = 0;
+						break;
+						case 324:
+							disp($e->getMessage() . ". Bad Graphics/ImageMagick output? Skipping " . $imagesToUpload[$i]["image"], 3);
+							$imagesToUpload[$i]["uploaded"] = true;
+						break;
+						case 325:
+							disp($e->getMessage() . ". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n\n", 1);
+						break;
+					}
+					$imagesToUpload[$i]["errors"]++;
+				}
+			}
+			if ($j == 0) break;
+		}
+	}
+}
+function getUploadAID(&$imageAlbums, &$uploadAlbumIdx) {
+	static $uploadAlbumIndex;
+	$idx = array_search(1, $imageAlbums["can_upload"]);
+	# If you can't upload or the image album has more than 200 photos.
+	if (is_array($imageAlbums)) {
+		$c = count($imageAlbums["aid"]);
+		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {
+			if ($imageAlbums["can_upload"][$uploadAlbumIdx] && $imageAlbums["size"][$uploadAlbumIdx] < 200) {
+				return $imageAlbums["aid"][$uploadAlbumIdx];
 			}
 		}
-		if ($j==0) break;
 	}
-}
-
-function getUploadAID(&$imageAlbums,&$uploadAlbumIdx) {
-	static $uploadAlbumIndex;
-	$uploadAlbumIdx=array_search(1,$imageAlbums["can_upload"]);
-	if ($uploadAlbumIndex===false||$imageAlbums["size"][$uploadAlbumIdx]>=200) {
-		$newAlbumName=genAlbumName(end($imageAlbums["name"]));
-		$newAlbum=createAlbum($newAlbumName);
-		foreach ($newAlbum as $key => $value) {
-			$imageAlbums[$key][]=$value;
-		}
-		$uploadAlbumIdx=count($imageAlbums["name"])-1;
+	$newAlbumName = genAlbumName(end($imageAlbums["name"]));
+	$newAlbum = createAlbum($newAlbumName);
+	foreach($newAlbum as $key => $value) {
+		$imageAlbums[$key][] = $value;
 	}
-	$aid=$imageAlbums["aid"][$uploadAlbumIdx];
-	return $aid;
+	$uploadAlbumIdx = count($imageAlbums["name"]) - 1;
+	return $imageAlbums["aid"][$uploadAlbumIdx];
 }
-
 function getAlbumImages($albums) {
 	global $fbo, $batchLimit;
 	$i = 0;
@@ -122,7 +139,6 @@ function getAlbumImages($albums) {
 	}
 	return arrayMutate($albumImages);
 }
-
 # Get the album ID if the album exists, else create the album and return the ID.
 function getImageAlbums($album_name) {
 	global $albums, $fbo, $uid;
@@ -141,7 +157,7 @@ function getImageAlbums($album_name) {
 		}
 	} else {
 		disp("$album_name not found. Creating.", 2);
-		$imageAlbums[0]=createAlbum($album_name);
+		$imageAlbums[0] = createAlbum($album_name);
 	}
 	$imageAlbums = arrayMutate($imageAlbums);
 	return $imageAlbums;
