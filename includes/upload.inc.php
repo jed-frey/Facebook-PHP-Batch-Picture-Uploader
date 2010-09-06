@@ -165,9 +165,14 @@ function getImageAlbums($album_name) {
 # getAlbumBase - Get the base name of an album based on the mode.
 # Input: $image - Image to get the album base for.
 function getAlbumBase($image) {
-	global $root_dir, $mode;
-	$album_name = ($mode == 1) ? basename(dirname($image)) : basename($root_dir);
-	disp("Generating Album Base Name: $album_name", 6);
+	global $root_dir, $mode, $albumName;
+	if ($albumName===NULL) {
+		$album_name = ($mode == 1) ? basename(dirname($image)) : basename($root_dir);
+		disp("Generating Album Base Name: $album_name", 5);
+	} else {
+		$album_name=$albumName;
+		disp("Using given name: $album_name", 5);
+	}
 	return $album_name;
 }
 # genAlbumName - Generate a new album name.

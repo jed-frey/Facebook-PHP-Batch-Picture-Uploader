@@ -1,4 +1,4 @@
-#!/opt/local/bin/php
+#!/usr/bin/env php
 <?php
 ####
 # Here Be Dragons.
@@ -37,6 +37,7 @@ Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n");
 $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 # Set the upload mode - Default 1.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
+$albumName = (array_key_exists("n", $options)) ? $options["n"] : NULL;
 if ($mode != 2 && $mode != 1) disp("Invalid Mode: $mode", 1);
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
