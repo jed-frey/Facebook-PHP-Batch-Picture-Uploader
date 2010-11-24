@@ -16,6 +16,8 @@ function waitToProcess($procs) {
 	while ($running != 0); # While the number running process isn't 0, keep checking.
 	
 }
+
+// Upload Images into Image Albums.
 function uploadImages($images, $imageAlbums) {
 	global $fbo;
 	$albumImages = getAlbumImages($imageAlbums);
@@ -23,22 +25,34 @@ function uploadImages($images, $imageAlbums) {
 	$a = 0;
 	$b = 0;
 	$batchSize = 10;
+	$md5s=array();
 	for ($a = 0;$a < $c;$a+=$batchSize) {
 		$imagesToUpload = array();
 		for ($b = 0;$b < $batchSize && ($a + $b) < $c;$b++) {
 			$z = $a + $b;
 			$image = $images[$z];
 			$caption = getCaption($image);
+			$md5 = md5_file($image);
+			#
 			if (array_key_exists("caption", $albumImages) && array_search($caption, $albumImages["caption"])!==false) {
-				disp("Skipping: $image as '$caption' already uploaded.", 4);
+				disp("Skipping: $image as '$caption' already uploaded (Filename Check)", 4);
 				continue;
 			}
+			if (array_key_exists("md5", $albumImages) && array_search($md5, $albumImages["md5"])!==false) {
+				disp("Skipping: $image already uploaded (MD5 Check)", 4);
+				continue;
+			}
+			if (array_search($md5, $md5s)!==false) {
+				disp("Skipping: Identical image to $image already queued (MD5 Check)", 4);
+				continue;
+			}
+			$md5s[]=$md5;
 			list($process, $thumb) = makeThumbBatch($image);
 			$temp["image"] = $image;
 			$temp["caption"] = $caption;
 			$temp["process"] = $process;
 			$temp["thumb"] = $thumb;
-			$temp["caption"] = $caption;
+			$temp["caption"] = $caption."\n\n\n".$md5;
 			$temp["uploaded"] = false;
 			$temp["errors"] = 0;
 			$imagesToUpload[] = $temp;
@@ -133,6 +147,11 @@ function getAlbumImages($albums) {
 	foreach($allAlbumPictures as $albumPictures) {
 		if (is_array($albumPictures)) {
 			foreach($albumPictures as $picture) {
+				if (preg_match("/[0-9a-f]{32}/i",$picture["caption"],$md5)) {
+					$picture["md5"]=$md5;
+				} else {
+					$picture["md5"]=null;
+				}
 				$albumImages[] = $picture;
 			}
 		}
