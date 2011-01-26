@@ -12,16 +12,15 @@ require_once ('includes/help.inc.php');
 require_once ('includes/images.inc.php');
 require_once ('includes/upload.inc.php');
 # Include required facebook include files.
-try {
-	if (is_file("facebook-platform/php/facebook.php")) {
-		require_once ("facebook-platform/php/facebook.php");
-		require_once ("facebook-platform/php/facebook_desktop.php");
-		require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
-	} else {
-		throw new Exception('Facebook PHP Platform not found.');
-	}
-} catch(Exception $e) {
-	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh", 0);
+if (is_dir(dirname($argv[0])."/facebook-platform")) {
+	include_once ("facebook-platform/php/facebook.php");
+	include_once ("facebook-platform/php/facebook_desktop.php");
+	include_once ("facebook-platform/php/facebookapi_php5_restlib.php");
+} else {
+	echo("Facebook PHP Platform not found.... attempting to download...\n");
+	echo shell_exec('./getFacebookPHPlibrary.sh')."\n";
+	echo ('If no errors were reported, try to run '.basename($argv[0]). " again.")."\n";
+	die;
 }
 $start_time = microtime(true); # Start timer
 $options = parseParameters(); # Parse input options and return an $options array.
