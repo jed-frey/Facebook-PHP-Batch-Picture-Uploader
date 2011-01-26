@@ -47,8 +47,8 @@ getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath)
 disp("Init...", 6);
 // Create Facebook Object
 # Key and Secret for php_batch_uploader.
-$key = "187d16837396c6d5ecb4b48b7b8fa038";
-$sec = "dc7a883649f0eac4f3caa8163b7e2a31";
+$key = "7c984a9708b1a9f0eb0880017560e840";
+$sec = "cfcec008079a87aace666875c0fcf3d9";
 $fbo = new FacebookDesktop($key, $sec, true);
 $auth = NULL;
 if (array_key_exists("a", $options)) {
@@ -72,11 +72,11 @@ try {
 	if (empty($uid)) throw new Exception('Failed Auth.');
 	// Check if program is authorized to upload pictures
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
-		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n", 2);
+		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=photo_upload\n", 2);
 	}
 }
 catch(Exception $e) {
-	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=$key", 1);
 }
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one folder to upload.", 1);
