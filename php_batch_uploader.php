@@ -13,9 +13,13 @@ require_once ('includes/images.inc.php');
 require_once ('includes/upload.inc.php');
 # Include required facebook include files.
 try {
-	require_once ("facebook-platform/php/facebook.php");
-	require_once ("facebook-platform/php/facebook_desktop.php");
-	require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
+	if (is_file("facebook-platform/php/facebook.php")) {
+		require_once ("facebook-platform/php/facebook.php");
+		require_once ("facebook-platform/php/facebook_desktop.php");
+		require_once ("facebook-platform/php/facebookapi_php5_restlib.php");
+	} else {
+		throw new Exception('Facebook PHP Platform not found.');
+	}
 } catch(Exception $e) {
 	disp("Facebook PHP Platform not found. Run getFacebookPHPlibrary.sh", 0);
 }
