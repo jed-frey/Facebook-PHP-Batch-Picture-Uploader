@@ -24,6 +24,10 @@ if (is_dir(dirname($argv[0])."/facebook-platform")) {
 }
 $start_time = microtime(true); # Start timer
 $options = parseParameters(); # Parse input options and return an $options array.
+if ($argv[0]!=$options[0]) { # For some reason parseParameters does weird things 
+	$options[1]=$options[0]; # depending on the order of calls and sometimes puts the directory into [0]
+}
+
 # If no arguments are given.
 # Key and Secret for php_batch_uploader.
 $key = "7c984a9708b1a9f0eb0880017560e840";
@@ -46,7 +50,11 @@ $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
 $albumName = (array_key_exists("n", $options)) ? $options["n"] : NULL;
 $no_recurse = (array_key_exists("nr", $options)) ? $options["nr"] : FALSE;
-
+if ($defaultSD==true) {
+	$photoSize = (array_key_exists("hd", $options)) ? $photoSizeHD : $photoSizeSD;
+} else {
+	$photoSize = (array_key_exists("sd", $options)) ? $photoSizeSD : $photoSizeHD;
+}
 if ($mode != 2 && $mode != 1) disp("Invalid Mode: $mode", 1);
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);

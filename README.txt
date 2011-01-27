@@ -1,12 +1,11 @@
 Requirements: 
 	php5 (http://php.net)
-	*NIX like OS (Linux, OS X, etc). Windows might work but will not been tested against.
+	*NIX like OS (Linux, OS X, etc). Windows might work but will not been tested.
 	Graphics Magick (http://www.graphicsmagick.org/) 
 		or
 	ImageMagick (http://www.imagemagick.org/)
 		apt-get install graphicsmagick | apt-get install imagemagick - Debian or Ubuntu
 		ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed http://www.imagemagick.org/script/binary-releases.php#macosx
-	Optional: dcraw (GraphicsMagick) or ufraw (ImageMagick) for raw images.
 	Some command line knowledge.
 	
 Installation:
@@ -26,16 +25,16 @@ Installation:
 			PATH=`pwd`:$PATH
 			cd ~/Pictures;php_batch_uploader ./
 ----------------------------------------------------------------------------------------
-Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-raw] directories
+Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-nr] [-sd/-hd] directories
         php_batch_uploader -a auth
-	   
+
   -a    Facebook Authentication Code. Must be used before the script can upload anything.
-            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038
+            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=7c984a9708b1a9f0eb0880017560e840
             to authorize php_batch_uploader and generate code.
 
             To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
-            http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload 
-  
+            http://www.facebook.com/authorize.php?v=1.0&api_key=7c984a9708b1a9f0eb0880017560e840&ext_perm=photo_upload 
+
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name. [Default]
             2: Use the top level directory input as album name. Create caption based on subdirectories & image name. [Default with Album name set]
@@ -49,11 +48,15 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
             2: Display errors and warnings. [Default]
             3: Display everything w/time stamp when event occurred.
             4: Display everything w/time stamp since last message.
-			5: Debug w/time stamp when event occurred.
-			6: Debug w/time stamp since last message.
+            5: Debug w/time stamp when event occurred.
+            6: Debug w/time stamp since last message.
 
   -nr    Disable recursion. Only upload images in the specified folders.
-  
+
+  -hd    Upload photos in high quality (2000x2000). This enables "Download in High Resolution" link when viewing photos.
+  			To set HD as default, edit config.inc.php and change $defaultSD=false.
+  -sd    Upload photos in standard quality (720x720). If $defaultSD=false, force uploading of images in standard quality.
+
   directories  Directories passed to script. These are the folders that are uploaded to Facebook.
 ----------------------------------------------------------------------------------------
 Modes Explained:
@@ -94,13 +97,13 @@ Modes Explained:
         5) Album '2009' is used, images will be captioned with "Road Trips - Road Trip#
 
 	Mode 2 with album specified.
-		Called with "[php] php_batch_uploader -n "My Life" ~/pictures/2008 ~/pictures/2009"
+		Called with "[php] php_batch_uploader -n "My Life" ~/pictures/2008 ~/pictures/2009"1) 
 		1) Album 'My Life' is created, images will be captioned with "Road Trips - Road Trip #"
         2) Album 'My Life' is used, images will be captioned with "Road Trips - Vegas - Vegas #"
         3) Album 'My Life' is used, images will be captioned with "Road Trips - Grand Canyon - GC #"
         4) Album 'My Life' is used, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
         5) Album 'My Life' is used, images will be captioned with "Road Trips - Road Trip#
-	    
+
     Caveat:
         The captions are used to determine unique pictures. In the above example, in mode 1, 
         if you had a 2008/Road Trips/1.jpg & 2009/Roadtrips/1.jpg, the second image will be skipped 
@@ -115,4 +118,3 @@ Modes Explained:
 
     When the Facebook limit of 200 photos is reached. The album name is suffixed with a number sign and a number starting at 2.
         "Spring Break" becomes "Spring Break #2" for photos 201-400 then "Spring Break #3" for 401-600 so on and so forth.
-  

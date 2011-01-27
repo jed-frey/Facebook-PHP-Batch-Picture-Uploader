@@ -4,7 +4,9 @@ function getAlbums() {
 	global $fbo;
 	disp("Getting albums", 6);
 	# Create the album.
-	$albums = $fbo->api_client->photos_getAlbums("", "");
+	$albums = $fbo->api_client->photos_getAlbums($fbo->require_login(), "");
+	var_dump($albums);
+	die;
 	return $albums;
 }
 # getAlbums - Get all current facebook albums

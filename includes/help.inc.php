@@ -3,7 +3,7 @@
 function printHelp($help = "") {
 	global $key;
 	$help.= <<<EOF
-Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-raw] directories
+Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-nr] [-sd/-hd] directories
         php_batch_uploader -a auth
 
   -a    Facebook Authentication Code. Must be used before the script can upload anything.
@@ -31,8 +31,11 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
 
   -nr    Disable recursion. Only upload images in the specified folders.
 
-  directories  Directories passed to script. These are the folders that are uploaded to Facebook.
+  -hd    Upload photos in high quality (2000x2000). This enables "Download in High Resolution" link when viewing photos.
+  			To set HD as default, edit config.inc.php and change \$defaultSD=false.
+  -sd    Upload photos in standard quality (720x720). If \$defaultSD=false, force uploading of images in standard quality.
 
+  directories  Directories passed to script. These are the folders that are uploaded to Facebook.
 
 EOF;
 	
