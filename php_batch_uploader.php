@@ -45,6 +45,8 @@ $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 # Set the upload mode - Default 1.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
 $albumName = (array_key_exists("n", $options)) ? $options["n"] : NULL;
+$no_recurse = (array_key_exists("nr", $options)) ? $options["nr"] : FALSE;
+
 if ($mode != 2 && $mode != 1) disp("Invalid Mode: $mode", 1);
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
@@ -99,7 +101,7 @@ die;
 # recursiveUpload - Recursively upload photos
 # Input: $dir - directory to start recursing from.
 function recursiveUpload($dir) {
-	global $fbo,$nr;
+	global $fbo,$no_recurse;
 	# Start the recursive upload.
 	disp("Recursively uploading: $dir", 6);
 	# Scan the folder for directories and images
@@ -113,7 +115,7 @@ function recursiveUpload($dir) {
 		uploadImages($result["images"], $imageAlbums);
 	}
 	# For each directory. Recursively upload photos
-	if ($nr) return;
+	if ($no_recurse) disp("No Recursion, stopping.", 0);
 	foreach($result['directories'] as $dir) {
 		recursiveUpload($dir);
 	}

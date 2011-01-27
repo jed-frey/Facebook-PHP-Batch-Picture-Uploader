@@ -37,9 +37,11 @@ function parseParameters($noopt = array()) {
 # Output: Mutated array, $arrays[0][$key]=$value => $arrays[$key][0]=$value
 function arrayMutate($arrays) {
 	$arrays_final = array(); # Set Albums as array.
-	foreach($arrays as $k1 => $array) {
-		foreach($array as $k2 => $value) {
-			$arrays_final[$k2][$k1] = $value;
+	if (is_array($arrays)) {
+		foreach($arrays as $k1 => $array) {
+			foreach($array as $k2 => $value) {
+				$arrays_final[$k2][$k1] = $value;
+			}
 		}
 	}
 	# Return array.
