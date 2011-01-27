@@ -25,10 +25,14 @@ if (is_dir(dirname($argv[0])."/facebook-platform")) {
 $start_time = microtime(true); # Start timer
 $options = parseParameters(); # Parse input options and return an $options array.
 # If no arguments are given.
+# Key and Secret for php_batch_uploader.
+$key = "7c984a9708b1a9f0eb0880017560e840";
+$sec = "cfcec008079a87aace666875c0fcf3d9";
+#
 if ($argc == 1) {
 	# Display Help.
 	printHelp("php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
-Copyright: Copyright (C) 2010 Jedediah Frey <facebook_batch@exstatic.org>\n\n");
+Copyright: Copyright (C) 2011 Jedediah Frey <php_batch_uploader@exstatic.org>\n\n");
 	die();
 } elseif (array_key_exists("m", $options) && $options['m'] == "h") {
 	# If the user asks for mode help.
@@ -46,9 +50,6 @@ if ($mode != 2 && $mode != 1) disp("Invalid Mode: $mode", 1);
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
 disp("Init...", 6);
 // Create Facebook Object
-# Key and Secret for php_batch_uploader.
-$key = "7c984a9708b1a9f0eb0880017560e840";
-$sec = "cfcec008079a87aace666875c0fcf3d9";
 $fbo = new FacebookDesktop($key, $sec, true);
 $auth = NULL;
 if (array_key_exists("a", $options)) {

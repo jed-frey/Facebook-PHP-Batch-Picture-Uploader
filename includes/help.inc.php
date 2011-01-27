@@ -1,16 +1,17 @@
 <?php
 # printHelp - Display Help Function
 function printHelp($help = "") {
+	global $key;
 	$help.= <<<EOF
 Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-raw] directories
         php_batch_uploader -a auth
 
   -a    Facebook Authentication Code. Must be used before the script can upload anything.
-            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038
+            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=$key
             to authorize php_batch_uploader and generate code.
 
             To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
-            http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload 
+            http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=photo_upload 
 
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name. [Default]
@@ -34,6 +35,7 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
 
 
 EOF;
+	
 	echo $help;
 }
 # printModeHelp - Print help for the differences between modes.

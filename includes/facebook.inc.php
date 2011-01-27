@@ -32,9 +32,9 @@ function getImages($aids) {
 	}
 }
 function getFacebookAuthorization($a = 1) {
-	global $fbo;
+	global $fbo, $key;
 	if ($a == 1) {
-		printHelp("You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038 to get one for php_batch_uploader.\n\n");
+		printHelp("You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=$key to get one for php_batch_uploader.\n\n");
 		die();
 	}
 	try {
