@@ -3,7 +3,7 @@ $converterPath = NULL; # To permanently change the image converter, set it here,
 $albumLimit = 200; # Limit the number of photos per album to this. Currently 200 in facebook.
 $photoSizeSD = "720x720"; # Resize to max facebook photo size. Currently 720x720 in facebook.
 $photoSizeHD = "2000x2000"; # Resize to max facebook photo size. Currently 720x720 in facebook.
-$defaultSD=true; # Set the default image quality. If $defaultSD=true, use "-hd" to upload in high quality.
+$defaultSD=false; # Set the default image quality. If $defaultSD=true, use "-hd" to upload in high quality.
 				  # If $defaultSD=false, use "-sd" to upload in standard quality.
 
 $photoQuality = 80; # JPEG Quality to resize with.

@@ -16,10 +16,9 @@ function waitToProcess($procs) {
 	while ($running != 0); # While the number running process isn't 0, keep checking.
 	
 }
-
 // Upload Images into Image Albums.
 function uploadImages($images, $imageAlbums) {
-	global $fbo;
+	global $fbo, $key;
 	$albumImages = getAlbumImages($imageAlbums);
 	$c = count($images);
 	$a = 0;
@@ -46,6 +45,10 @@ function uploadImages($images, $imageAlbums) {
 				disp("Skipping: Identical image to $image already queued (MD5 Check)", 4);
 				continue;
 			}
+			
+			print_r($albumImages);
+			die;
+			
 			$md5s[]=$md5;
 			list($process, $thumb) = makeThumbBatch($image);
 			$temp["image"] = $image;
@@ -87,7 +90,7 @@ function uploadImages($images, $imageAlbums) {
 							disp("Fatal error: " . $e->getMessage() . "\n Please submit a bug report: http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader", 1);
 						break;
 						case 102:
-							disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+							disp("Could not login. Try creating a new auth code.", 1);
 						case 321:
 							disp($e->getMessage() . ". Should have been caught earlier.", 3);
 							$imageAlbums["size"][$uploadAlbumIdx] = 200;
@@ -98,7 +101,7 @@ function uploadImages($images, $imageAlbums) {
 							$imagesToUpload[$i]["uploaded"] = true;
 						break;
 						case 325:
-							disp($e->getMessage() . ". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038&ext_perm=photo_upload\n\n", 1);
+							disp($e->getMessage() . ". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload\n\n", 1);
 						break;
 					}
 					$imagesToUpload[$i]["errors"]++;
@@ -148,7 +151,7 @@ function getAlbumImages($albums) {
 		if (is_array($albumPictures)) {
 			foreach($albumPictures as $picture) {
 				if (preg_match("/[0-9a-f]{32}/i",$picture["caption"],$md5)) {
-					$picture["md5"]=$md5;
+					$picture["md5"]=$md5[0];
 				} else {
 					$picture["md5"]=null;
 				}
@@ -164,7 +167,6 @@ function getImageAlbums($album_name) {
 	# Get a list of user albums
 	$albums = getAlbums();
 	$albums2 = arrayMutate($albums);
-	//$album_name="Road Trip - May 2006";
 	if ($idx[] = array_search($album_name, $albums2["name"])) {
 		disp("Found $album_name", 6);
 		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
