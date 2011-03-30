@@ -12,26 +12,22 @@ require_once ('includes/help.inc.php');
 require_once ('includes/images.inc.php');
 require_once ('includes/upload.inc.php');
 # Include required facebook include files.
-if (is_dir(dirname($argv[0])."/facebook-platform")) {
-	include_once ("facebook-platform/php/facebook.php");
-	include_once ("facebook-platform/php/facebook_desktop.php");
-	include_once ("facebook-platform/php/facebookapi_php5_restlib.php");
-} else {
-	echo("Facebook PHP Platform not found.... attempting to download...\n");
-	echo shell_exec('./getFacebookPHPlibrary.sh')."\n";
-	echo ('If no errors were reported, try to run '.basename($argv[0]). " again.")."\n";
-	die;
-}
+include_once ("facebook/facebook.php");
+include_once ("facebook/facebook_desktop.php");
+	
+	
 $start_time = microtime(true); # Start timer
 $options = parseParameters(); # Parse input options and return an $options array.
 if ($argv[0]!=$options[0]) { # For some reason parseParameters does weird things 
 	$options[1]=$options[0]; # depending on the order of calls and sometimes puts the directory into [0]
 }
 
-# If no arguments are given.
 # Key and Secret for php_batch_uploader.
+$app_id="180748208632384";
 $key = "7c984a9708b1a9f0eb0880017560e840";
 $sec = "cfcec008079a87aace666875c0fcf3d9";
+$urlAuth = "http://www.facebook.com/code_gen.php?v=1.0&api_key={$key}";
+$urlAccess = "https://www.facebook.com/dialog/oauth?client_id={$app_id}&redirect_uri=http://www.facebook.com/connect/login_success.html";
 #
 if ($argc == 1) {
 	# Display Help.

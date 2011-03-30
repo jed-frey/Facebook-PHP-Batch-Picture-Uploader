@@ -4,11 +4,24 @@ function getAlbums() {
 	global $fbo;
 	disp("Getting albums", 6);
 	# Create the album.
-	$albums = $fbo->api_client->photos_getAlbums($fbo->require_login(), "");
-	var_dump($albums);
-	die;
+	$albums = $fbo->api_client->photos_getAlbums($fbo->api_client->users_getLoggedInUser(), "");
 	return $albums;
 }
+
+function showAuth() {
+    global $fbcmdPrefs, $urlAccess, $urlAuth;
+    print "\n";
+    print "php_batch_uploader needs to be authorized to access your Facebook account.\n";
+    print "\n";
+    print "Step 1: Allow basic (initial) access to your account via this url:\n\n";
+    print "{$urlAccess}\n";
+    print "\n";
+    print "Step 2: Generate an offline authorization code at this url:\n\n";
+    print "{$urlAuth}\n";
+    print "\n";
+    print "obtain your authorization code (XXXXXX) and then execute: php_batch_uploader.php -a XXXXXX\n\n";
+}
+
 # getAlbums - Get all current facebook albums
 function createAlbum($name) {
 	global $fbo;
@@ -44,7 +57,7 @@ function getFacebookAuthorization($a = 1) {
 		if (empty($auth)) throw new Exception('Empty Code.');
 	}
 	catch(Exception $e) {
-		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=187d16837396c6d5ecb4b48b7b8fa038", 1);
+		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=$key", 1);
 	}
 	disp("Executed facebook authorization.", 6);
 	// Store authorization code in authentication array
