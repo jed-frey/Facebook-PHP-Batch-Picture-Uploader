@@ -33,10 +33,6 @@ function uploadImages($images, $imageAlbums) {
 			$caption = getCaption($image);
 			$md5 = md5_file($image);
 			#
-			if (array_key_exists("caption", $albumImages) && array_search($caption, $albumImages["caption"])!==false) {
-				disp("Skipping: $image as '$caption' already uploaded (Filename Check)", 4);
-				continue;
-			}
 			if (array_key_exists("md5", $albumImages) && array_search($md5, $albumImages["md5"])!==false) {
 				disp("Skipping: $image already uploaded (MD5 Check)", 4);
 				continue;
@@ -45,10 +41,6 @@ function uploadImages($images, $imageAlbums) {
 				disp("Skipping: Identical image to $image already queued (MD5 Check)", 4);
 				continue;
 			}
-			
-			print_r($albumImages);
-			die;
-			
 			$md5s[]=$md5;
 			list($process, $thumb) = makeThumbBatch($image);
 			$temp["image"] = $image;
