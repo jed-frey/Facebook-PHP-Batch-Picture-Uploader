@@ -56,7 +56,7 @@ function uploadImages($images, $imageAlbums) {
 			$j = 0;
 			for ($i = 0;$i < count($imagesToUpload);$i++) {
 				if ($imagesToUpload[$i]["uploaded"]) continue;
-				disp("Waiting for processing to finish on: " . $imagesToUpload[$i]["caption"], 5);
+				disp("Waiting for processing to finish on: " . $imagesToUpload[$i]["image"], 5);
 				waitToProcess($imagesToUpload[$i]["process"]);
 				try {
 					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"]);

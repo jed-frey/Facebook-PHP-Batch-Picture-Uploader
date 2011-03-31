@@ -11,12 +11,7 @@ function makeThumbBatch($file) {
 	$input = escapeshellarg($file); # Input File
 	$output = escapeshellarg($temp_file); # Output file.
 	# create command to create thumbnail
-	$size=getimagesize($file);
-	if ($size[0]<$photoSize && $size[0]<$photoSize) {
-		$command = "cp $input $output";
-	} else {
-		$command = "$converter -format JPG -quality $photoQuality -size $photoSize -resize {$photoSize}x{$photoSize} +profile '*' $input $output";
-	}
+	$command = "$converter -format JPG -quality $photoQuality -size $photoSize -resize {$photoSize}x{$photoSize}> +profile '*' $input $output";
 	disp($command, 6);
 	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
 	# Fork process

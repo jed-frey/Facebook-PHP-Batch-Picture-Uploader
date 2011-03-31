@@ -47,7 +47,7 @@ function getImages($aids) {
 	}
 }
 function getFacebookAuthorization($a = 1) {
-	global $fbo, $key;
+	global $fbo, $key, $urlAccess, $urlAuth;
 	if ($a == 1) {
 		printHelp("You must give your athorization code.\nVisit http://www.facebook.com/code_gen.php?v=1.0&api_key=$key to get one for php_batch_uploader.\n\n");
 		die();
@@ -55,14 +55,16 @@ function getFacebookAuthorization($a = 1) {
 	try {
 		$auth = $fbo->do_get_session($a);
 		if (empty($auth)) throw new Exception('Empty Code.');
+		$fbReturn = $fbo->api_client->users_getInfo($fbo->api_client->users_getLoggedInUser(), array('name'));
+		$name=$fbReturn[0]["name"];
 	}
 	catch(Exception $e) {
-		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: http://www.facebook.com/code_gen.php?v=1.0&api_key=$key", 1);
+		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: {$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthoize it at {$urlAccess}", 1);
 	}
 	disp("Executed facebook authorization.", 6);
 	// Store authorization code in authentication array
 	$auth['code'] = $a;
 	// Save to users home directory
 	file_put_contents(getenv('HOME') . "/.facebook_auth", serialize($auth));
-	disp("You are now authenticated! Re-run this application with a list of directories\nyou would like uploaded to facebook.", 1);
+	disp("You are now authenticated {$name}! Re-run php_batch_uploader with a list of directories you would like uploaded to facebook.", 1);
 }

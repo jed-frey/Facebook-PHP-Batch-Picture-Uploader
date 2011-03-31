@@ -22,10 +22,27 @@ if ($argv[0]!=$options[0]) { # For some reason parseParameters does weird things
 }
 #
 if ($argc == 1) {
+# Check if authorization file exists.
+	if (!is_file(getenv('HOME') . "/.facebook_auth")) {
+		echo<<<EOF
+It looks like this is the first time you have run php_batch_uploader on this machine.
+
+If you have not already authorized php_batch_uploader access to your facebook account you must do that first at:
+{$urlAccess}
+
+You must then generate a one-time code at 
+{$urlAuth} 
+
+And run php_batch_uploader with the '-a' switch using the generated code.
+
+
+EOF;
+	} else {
 	# Display Help.
 	printHelp("php_batch_uploader http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader
 Copyright: Copyright (C) 2011 Jedediah Frey <php_batch_uploader@exstatic.org>\n\n");
 	die();
+	}
 } elseif (array_key_exists("m", $options) && $options['m'] == "h") {
 	# If the user asks for mode help.
 	printModeHelp();
@@ -53,11 +70,7 @@ $auth = NULL;
 if (array_key_exists("a", $options)) {
 	getFacebookAuthorization($options["a"]);
 }
-# Check if authorization file exists.
-if (!is_file(getenv('HOME') . "/.facebook_auth")) {
-	printHelp("User has not been authorized.\n\n");
-	die();
-}
+
 # Get saved authorization data.
 disp("Loading session data. ", 6);
 $auth = is_array($auth) ? $auth : unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
@@ -71,11 +84,11 @@ try {
 	if (empty($uid)) throw new Exception('Failed Auth.');
 	// Check if program is authorized to upload pictures
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
-		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit \n", 2);
+		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit $urlUpload\n", 2);
 	}
 }
 catch(Exception $e) {
-	disp("Could not login. Try creating a new auth code at http://www.facebook.com/code_gen.php?v=1.0&api_key=$key", 1);
+	disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at:\n\t{$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthoize it at\n\t {$urlAccess}", 1);
 }
 # Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one folder to upload.", 1);
