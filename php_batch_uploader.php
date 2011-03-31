@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 ####
-# Here Be Dragons.
+# Here Be Dragons. All configuration is in config.inc.php
 ####
 error_reporting(E_ALL | !E_STRICT);
 # Required uploader include files
@@ -14,20 +14,12 @@ require_once ('includes/upload.inc.php');
 # Include required facebook include files.
 include_once ("facebook/facebook.php");
 include_once ("facebook/facebook_desktop.php");
-	
-	
+
 $start_time = microtime(true); # Start timer
 $options = parseParameters(); # Parse input options and return an $options array.
 if ($argv[0]!=$options[0]) { # For some reason parseParameters does weird things 
 	$options[1]=$options[0]; # depending on the order of calls and sometimes puts the directory into [0]
 }
-
-# Key and Secret for php_batch_uploader.
-$app_id="180748208632384";
-$key = "7c984a9708b1a9f0eb0880017560e840";
-$sec = "cfcec008079a87aace666875c0fcf3d9";
-$urlAuth = "http://www.facebook.com/code_gen.php?v=1.0&api_key={$key}";
-$urlAccess = "https://www.facebook.com/dialog/oauth?client_id={$app_id}&redirect_uri=http://www.facebook.com/connect/login_success.html";
 #
 if ($argc == 1) {
 	# Display Help.
@@ -79,7 +71,7 @@ try {
 	if (empty($uid)) throw new Exception('Failed Auth.');
 	// Check if program is authorized to upload pictures
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
-		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=photo_upload\n", 2);
+		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit \n", 2);
 	}
 }
 catch(Exception $e) {
