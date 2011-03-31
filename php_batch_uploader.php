@@ -86,8 +86,7 @@ try {
 	if (!($fbo->api_client->users_hasAppPermission('photo_upload', $uid))) {
 		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit $urlUpload\n", 2);
 	}
-}
-catch(Exception $e) {
+} catch(Exception $e) {
 	disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at:\n\t{$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthoize it at\n\t {$urlAccess}", 1);
 }
 # Check if at least one folder was given
