@@ -41,8 +41,6 @@ function uploadImages($images, $imageAlbums) {
 				disp("Skipping: Identical image to $image already queued (MD5 Check)", 4);
 				continue;
 			}
-			print_r($md5s);
-			die;
 			$md5s[]=$md5;
 			list($process, $thumb) = makeThumbBatch($image);
 			$temp["image"] = $image;
@@ -153,6 +151,7 @@ function getAlbumImages($albums) {
 			}
 		}
 	}
+	
 	return arrayMutate($albumImages);
 }
 # Get the album ID if the album exists, else create the album and return the ID.
