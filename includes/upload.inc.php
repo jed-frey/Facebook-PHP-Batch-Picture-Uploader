@@ -42,6 +42,8 @@ function uploadImages($images, $imageAlbums) {
 				disp("Skipping: Identical image to $image already queued (MD5 Check)", 4);
 				continue;
 			}
+			print_r($albumImages["md5"]);
+			die;
 			$md5s[]=$md5;
 			list($process, $thumb) = makeThumbBatch($image);
 			$temp["image"] = $image;
@@ -126,19 +128,12 @@ function getUploadAID(&$imageAlbums, &$uploadAlbumIdx) {
 	return $imageAlbums["aid"][$uploadAlbumIdx];
 }
 function getAlbumImages($albums) {
-	global $fbo, $batchLimit;
+	global $fbo;
 	$i = 0;
-	$fbo->api_client->begin_batch();
 	foreach($albums["aid"] as $aid) {
 		$allAlbumPictures[$i] = & $fbo->api_client->photos_get("", $aid, "");
 		$i++;
-		if (($i % $batchLimit) == 0) {
-			disp("Batch execution function limit reached. Executing and beginning new batch.", 5);
-			$fbo->api_client->end_batch();
-			$fbo->api_client->begin_batch();
-		}
 	}
-	$fbo->api_client->end_batch();
 	# Merge all of the album pictures into one picture array.
 	$albumImages = array();
 	foreach($allAlbumPictures as $albumPictures) {
