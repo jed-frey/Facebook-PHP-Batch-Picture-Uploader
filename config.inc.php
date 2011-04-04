@@ -5,7 +5,6 @@ $photoSizeSD   = 720;   # Resize to max facebook photo size. Currently 720x720 i
 $photoSizeHD   = 2000;  # Resize to max facebook photo size. Currently 720x720 in facebook.
 $albumLimit    = 200;   # Limit the number of photos per album to this. Currently 200 in facebook.
 $photoQuality  = 80;    # JPEG Quality to resize with.
-$batchLimit    = 15;    # Facebook batch limit. Currently 20, set to 15 to be safe.
 $converterPath = NULL;  # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
 
 ## These shouldn't need edited and changed unless you want to use them with your own app.
