@@ -10,10 +10,18 @@ function makeThumbBatch($file) {
 	$temp_file = tempnam("/tmp", "fbi_"); # Generate a temp file where the thumbnails will be put before uploading.
 	$input = escapeshellarg($file); # Input File
 	$output = escapeshellarg($temp_file); # Output file.
-	# create command to create thumbnail
-	$command = "$converter -format JPG -quality $photoQuality -size $photoSize -resize '{$photoSize}x{$photoSize}>' +profile '*' $input $output";
-	disp($command, 6);
+	list($width, $height, $type, $attr) = getimagesize($file);
+	# If the file is already smaller, no need to waste CPU on Magick.
+	if ($width<=$photoSize && $height<=$photoSize) {
+		# Touch dev null.
+		$command = "touch /dev/null";
+		$temp_file = $file;
+	} else {
+		# create command to create thumbnail
+		$command = "$converter -format JPG -quality $photoQuality -resize '{$photoSize}x{$photoSize}>' +profile '*' $input $output";
+	}
 	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
+	disp($command, 6);
 	# Fork process
 	$ret[0] = proc_open($command, $descriptorspec, $pipes);
 	$ret[1] = $temp_file;

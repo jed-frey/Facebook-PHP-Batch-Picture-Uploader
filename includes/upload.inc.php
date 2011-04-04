@@ -11,6 +11,7 @@ function waitToProcess($procs) {
 			$r = proc_get_status($proc);
 			# Increment the number of running threads.
 			if ($r["running"]) $running++;
+			echo $running;
 		}
 	}
 	while ($running != 0); # While the number running process isn't 0, keep checking.
@@ -58,6 +59,7 @@ function uploadImages($images, $imageAlbums) {
 				if ($imagesToUpload[$i]["uploaded"]) continue;
 				disp("Waiting for processing to finish on: " . $imagesToUpload[$i]["image"], 5);
 				waitToProcess($imagesToUpload[$i]["process"]);
+				disp("Finished Processing.", 5);
 				try {
 					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
 					$imageAlbums["size"][$uploadAlbumIdx]++;
