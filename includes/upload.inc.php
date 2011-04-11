@@ -220,6 +220,6 @@ function getCaption($image) {
 	}
 	# Trim off excess white spaces.
 	$caption = trim($caption);
-	disp("Got Caption: $caption for $image"s
+	disp("Got Caption: $caption for $image", 5);
 	return $caption;
 }
