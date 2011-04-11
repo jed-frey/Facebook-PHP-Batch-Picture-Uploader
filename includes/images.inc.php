@@ -5,7 +5,7 @@
 #		  Array[1] Associative array with the [original] file and [thumb]nail being generated.
 function makeThumbBatch($file) {
 	global $photoSize, $photoQuality, $converter;
-	disp("Make Thumbnail: $file", 6);
+	disp("Make Thumbnail: $file", 5);
 	# global variable for converter.
 	$temp_file = tempnam("/tmp", "fbi_"); # Generate a temp file where the thumbnails will be put before uploading.
 	$input = escapeshellarg($file); # Input File
@@ -21,7 +21,7 @@ function makeThumbBatch($file) {
 		$command = "$converter -format JPG -quality $photoQuality -resize '{$photoSize}x{$photoSize}>' +profile '*' $input $output";
 	}
 	$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
-	disp($command, 6);
+	disp($command, 5);
 	# Fork process
 	$ret[0] = proc_open($command, $descriptorspec, $pipes);
 	$ret[1] = $temp_file;
@@ -33,7 +33,7 @@ function makeThumbBatch($file) {
 # Output: Associative array with all the [images] and [directories] that the input directory contains.
 function folderScan($dir) {
 	global $raw;
-	disp("Scanning Folder: $dir", 6);
+	disp("Scanning Folder: $dir", 5);
 	# Define image extensions in lower case.
 	$imgExt = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tif', 'tiff');
 	if ($raw) $imgExt=array_merge($imgExt,array('dng','cr2'));
@@ -67,7 +67,7 @@ function folderScan($dir) {
 # Input: $path - specified path to converter.
 # Output: path to converter is assigned to $converter global.
 function getConverter($path = NULL) {
-	disp("Finding image converter.", 6);
+	disp("Finding image converter.", 5);
 	global $converter;
 	# If a path isn't specified.
 	if (is_null($path)) {

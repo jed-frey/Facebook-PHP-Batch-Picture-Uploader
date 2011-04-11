@@ -63,7 +63,7 @@ if ($defaultSD==true) {
 if ($mode != 2 && $mode != 1) disp("Invalid Mode: $mode", 1);
 # Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
-disp("Init...", 6);
+disp("Init...", 5);
 // Create Facebook Object
 $fbo = new FacebookDesktop($key, $sec, true);
 $auth = NULL;
@@ -72,11 +72,11 @@ if (array_key_exists("a", $options)) {
 }
 
 # Get saved authorization data.
-disp("Loading session data. ", 6);
+disp("Loading session data. ", 5);
 $auth = is_array($auth) ? $auth : unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
 # Try to login with auth programs
 try {
-	disp("Checking Facebook Authorization.", 6);
+	disp("Checking Facebook Authorization.", 5);
 	$fbo->api_client->session_key = $auth['session_key'];
 	$fbo->secret = $auth['secret'];
 	$fbo->api_client->secret = $auth['secret'];
@@ -111,7 +111,7 @@ die;
 function recursiveUpload($dir) {
 	global $fbo,$no_recurse;
 	# Start the recursive upload.
-	disp("Recursively uploading: $dir", 6);
+	disp("Recursively uploading: $dir", 5);
 	# Scan the folder for directories and images
 	$result = folderScan($dir);
 	# If the number of images in directory is greater than 1.

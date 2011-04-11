@@ -34,11 +34,11 @@ function uploadImages($images, $imageAlbums) {
 			$md5 = md5_file($image);
 			#
 			if (array_key_exists("md5", $albumImages) && array_search($md5, $albumImages["md5"])!==false) {
-				disp("Skipping: $image already uploaded (MD5 Check)", 4);
+				disp("Skipping: $image already uploaded (MD5 Check)", 3);
 				continue;
 			}
 			if (array_search($md5, $md5s)!==false) {
-				disp("Skipping: Identical image to $image already queued (MD5 Check)", 4);
+				disp("Skipping: Identical image to $image already queued (MD5 Check)", 3);
 				continue;
 			}
 			$md5s[]=$md5;
@@ -155,10 +155,10 @@ function getImageAlbums($album_name) {
 	$albums = getAlbums();
 	$albums2 = arrayMutate($albums);
 	if ($idx[] = array_search($album_name, $albums2["name"])) {
-		disp("Found $album_name", 6);
+		disp("Found $album_name", 5);
 		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
 			$idx[] = $idx_tmp;
-			disp("Found $album_name #$i", 6);
+			disp("Found $album_name #$i", 5);
 		}
 		foreach($idx as $i) {
 			$imageAlbums[] = $albums[$i];
@@ -195,7 +195,7 @@ function genAlbumName($baseAlbumName) {
 		// Else, album name is #2.
 		$newName = $baseAlbumName . " #2";
 	}
-	disp("Generated new album name $newName from $baseAlbumName", 6);
+	disp("Generated new album name $newName from $baseAlbumName", 5);
 	// Return the new name
 	return $newName;
 }
@@ -220,6 +220,6 @@ function getCaption($image) {
 	}
 	# Trim off excess white spaces.
 	$caption = trim($caption);
-	disp("Got Caption: $caption for $image", 6);
+	disp("Got Caption: $caption for $image"s
 	return $caption;
 }

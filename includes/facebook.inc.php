@@ -2,7 +2,7 @@
 # getAlbums - Get all current facebook albums
 function getAlbums() {
 	global $fbo;
-	disp("Getting albums", 6);
+	disp("Getting albums", 5);
 	# Create the album.
 	$albums = $fbo->api_client->photos_getAlbums($fbo->api_client->users_getLoggedInUser(), "");
 	return $albums;
@@ -25,7 +25,7 @@ function showAuth() {
 # getAlbums - Get all current facebook albums
 function createAlbum($name) {
 	global $fbo;
-	disp("Creating album: $name", 6);
+	disp("Creating album: $name", 5);
 	try {
 		$album = $fbo->api_client->photos_createAlbum($name);
 	}
@@ -61,7 +61,7 @@ function getFacebookAuthorization($a = 1) {
 	catch(Exception $e) {
 		disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at: {$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthoize it at {$urlAccess}", 1);
 	}
-	disp("Executed facebook authorization.", 6);
+	disp("Executed facebook authorization.", 5);
 	// Store authorization code in authentication array
 	$auth['code'] = $a;
 	// Save to users home directory
