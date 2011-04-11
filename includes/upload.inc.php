@@ -11,7 +11,6 @@ function waitToProcess($procs) {
 			$r = proc_get_status($proc);
 			# Increment the number of running threads.
 			if ($r["running"]) $running++;
-			echo $running;
 		}
 	}
 	while ($running != 0); # While the number running process isn't 0, keep checking.
@@ -24,7 +23,7 @@ function uploadImages($images, $imageAlbums) {
 	$c = count($images);
 	$a = 0;
 	$b = 0;
-	$batchSize = 10;
+	$batchSize = 20;
 	$md5s=array();
 	for ($a = 0;$a < $c;$a+=$batchSize) {
 		$imagesToUpload = array();
