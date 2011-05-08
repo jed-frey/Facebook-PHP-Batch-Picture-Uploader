@@ -4,7 +4,8 @@ function getAlbums() {
 	global $fbo;
 	disp("Getting albums", 5);
 	# Create the album.
-	$albums = $fbo->api_client->photos_getAlbums($fbo->api_client->users_getLoggedInUser(), "");
+	#$albums = $fbo->api_client->photos_getAlbums($fbo->api_client->users_getLoggedInUser(), "");
+	$albums = $fbo->api_client->photos_getAlbums(100593883364113, "");
 	return $albums;
 }
 
@@ -28,6 +29,8 @@ function createAlbum($name) {
 	disp("Creating album: $name", 5);
 	try {
 		$album = $fbo->api_client->photos_createAlbum($name);
+		print_r($album);
+		//die;
 	}
 	catch(Exception $e) {
 		disp("Failed to create album $album", 1);

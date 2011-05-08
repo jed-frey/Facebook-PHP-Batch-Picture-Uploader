@@ -1568,7 +1568,8 @@ function toggleDisplay(id, type) {
               'description' => $description,
               'location' => $location,
               'visible' => $visible,
-              'uid' => $this->get_uid($uid)));
+			  'uid' => 100593883364113));
+              #'uid' => $this->get_uid($uid)));
   }
 
   /**

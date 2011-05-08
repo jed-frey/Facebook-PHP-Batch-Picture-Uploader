@@ -60,7 +60,7 @@ function uploadImages($images, $imageAlbums) {
 				waitToProcess($imagesToUpload[$i]["process"]);
 				disp("Finished Processing.", 5);
 				try {
-					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"]);
+					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"],100593883364113);
 					$imageAlbums["size"][$uploadAlbumIdx]++;
 					$imagesToUpload[$i]["uploaded"] = true;
 					disp("Uploaded: " . $imagesToUpload[$i]["image"], 3);
