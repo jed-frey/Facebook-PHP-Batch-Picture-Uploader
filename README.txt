@@ -3,9 +3,13 @@ Requirements:
     *NIX like OS (Linux, OS X, etc). Windows might work but will not been tested.
     Graphics Magick (http://www.graphicsmagick.org/) 
         or
-    ImageMagick (http://www.imagemagick.org/)
-        apt-get install graphicsmagick | apt-get install imagemagick - Debian or Ubuntu
-        ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed http://www.imagemagick.org/script/binary-releases.php#macosx
+    ImageMagick (http://www.imagemagick.org/)	
+        Debian or Ubuntu
+            apt-get install graphicsmagick | apt-get install imagemagick
+        OS X with MacPorts installed
+            ports install graphicsmagick | ports install imagemagick
+        OS X Binary Release
+            http://www.imagemagick.org/script/binary-releases.php#macosx
     Some command line knowledge.
     
 Installation:
@@ -63,8 +67,10 @@ Album Options
             http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=manage_pages
 
 Image Quality. To set HD as default, edit config.inc.php and change \$defaultSD=false.
-  -hd    Upload photos in high quality (2000x2000). This enables "Download in High Resolution" link when viewing photos.
-  -sd    Upload photos in standard quality (720x720). If \$defaultSD=false, force uploading of images in standard quality.
+  -hd    Upload photos in high quality (2000x2000). 
+         This enables "Download in High Resolution" link when viewing photos.
+  -sd    Upload photos in standard quality (720x720). 
+         If \$defaultSD=false, force uploading of images in standard quality.
 ----------------------------------------------------------------------------------------
 Modes Explained:
     Each of the modes will recursively upload all images and folders in a given directory. 
@@ -95,8 +101,8 @@ Modes Explained:
         5) Because album 'Road Trips' already exists, all images in this folder will be uploaded to the existing Album.
 
     Mode 2:
-        ~/pictures/2008 & ~/pictures/2009 are the input directories, '2008' and '2009' will be the Album Names, respectively
-        Since '2008' & '2009' is the root directory, images in sub folders will be uploaded into these two albums.
+        ~/pictures/2008 & ~/pictures/2009 are the input directories, '2008' and '2009' will be the Album Names
+        Since '2008' & '2009' are the root directories, images in sub folders will be uploaded into these two albums.
         1) Album '2008' is created, images will be captioned with "Road Trips - Road Trip #"
         2) Album '2008' is used, images will be captioned with "Road Trips - Vegas - Vegas #"
         3) Album '2008' is used, images will be captioned with "Road Trips - Grand Canyon - GC #"
@@ -111,17 +117,21 @@ Modes Explained:
         4) Album 'My Life' is used, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
         5) Album 'My Life' is used, images will be captioned with "Road Trips - Road Trip#
 
-    Caveat:
-        The captions are used to determine unique pictures. In the above example, in mode 1, 
-        if you had a 2008/Road Trips/1.jpg & 2009/Roadtrips/1.jpg, the second image will be skipped 
-        because the script will think it's the same picture.
-
     Beware of how your shell script interprets inputs for mode 2
-        For example, in bash,  php_batch_uploader ~/pictures/ & php_batch_uploader ~/pictures/* are not the same.
-        In the first,  1 argument (~/pictures/) is passed to the script, so the Album Name in Mode 2 will be "pictures"
-        In the second, 2 arguments (~/pictures/2008,~/pictures/2009) are passed and albums in the example will be created.
+        For example in bash: 
+            php_batch_uploader ~/pictures/
+            php_batch_uploader ~/pictures/* 
+        are not the same.
 
-        In Mode 1, there won't be any difference (unless you have pictures in the root folder ~/pictures, then an Album "pictures" will be created)
+        In the first,  1 argument (~/pictures/) is passed to the script, 
+            so the Album Name in Mode 2 will be "pictures"
+        In the second, 2 arguments (~/pictures/2008,~/pictures/2009) are passed 
+            and albums in the example will be created.
 
-    When the Facebook limit of 200 photos is reached. The album name is suffixed with a number sign and a number starting at 2.
-        "Spring Break" becomes "Spring Break #2" for photos 201-400 then "Spring Break #3" for 401-600 so on and so forth.
+        In Mode 1, there won't be any differenceunless you have pictures in the root folder ~/pictures,
+            then an Album "pictures" will be created)
+
+    When the Facebook limit of 200 photos is reached. The album name is suffixed with a number sign 
+            and a number starting at 2.
+    "Spring Break" becomes "Spring Break #2" for photos 201-400 then "Spring Break #3" 
+        for 401-600 so on and so forth.
