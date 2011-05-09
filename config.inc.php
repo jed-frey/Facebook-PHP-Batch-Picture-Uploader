@@ -1,14 +1,15 @@
 <?php
-$defaultSD     = false; # Set the default image quality. If $defaultSD=true, use "-hd" to upload in high quality.
-                        # If $defaultSD=false, use "-sd" to upload in standard quality.
-$photoSizeSD   = 720;   # Resize to max facebook photo size. Currently 720x720 in facebook.
-$photoSizeHD   = 2000;  # Resize to max facebook photo size. Currently 720x720 in facebook.
-$albumLimit    = 200;   # Limit the number of photos per album to this. Currently 200 in facebook.
-$photoQuality  = 80;    # JPEG Quality to resize with.
-$converterPath = NULL;  # To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
-
-## These shouldn't need edited and changed unless you want to use them with your own app.
-# Key and Secret for php_batch_uploader.
+$defaultSD     = false; // Set the default image quality. If $defaultSD=true, use "-hd" to upload in high quality.
+                        // If $defaultSD=false, use "-sd" to upload in standard quality.
+$photoSizeSD   = 720;   // Resize to max facebook photo size. Currently 720x720 in facebook.
+$photoSizeHD   = 2000;  // Resize to max facebook photo size. Currently 720x720 in facebook.
+$albumLimit    = 200;   // Limit the number of photos per album to this. Currently 200 in facebook.
+$photoQuality  = 80;    // JPEG Quality to resize with.
+$converterPath = NULL;  // To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
+$privacy       = "friends"; // Default privacy settings.
+    
+// These shouldn't need edited and changed unless you want to use them with your own app.
+// Key and Secret for php_batch_uploader.
 $app_id="180748208632384";
 $key = "7c984a9708b1a9f0eb0880017560e840";
 $sec = "cfcec008079a87aace666875c0fcf3d9";

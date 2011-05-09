@@ -1,11 +1,11 @@
 <?php
 # getAlbums - Get all current facebook albums
 function getAlbums() {
-	global $fbo;
+	global $fbo, $uid;
 	disp("Getting albums", 5);
 	# Create the album.
 	#$albums = $fbo->api_client->photos_getAlbums($fbo->api_client->users_getLoggedInUser(), "");
-	$albums = $fbo->api_client->photos_getAlbums(100593883364113, "");
+	$albums = $fbo->api_client->photos_getAlbums($uid, "");
 	return $albums;
 }
 
@@ -25,12 +25,10 @@ function showAuth() {
 
 # getAlbums - Get all current facebook albums
 function createAlbum($name) {
-	global $fbo, $uid;
+	global $fbo, $uid, $description, $location, $privacy;
 	disp("Creating album: $name", 5);
 	try {
-		$album = $fbo->api_client->photos_createAlbum($name,'','','',$uid);
-		print_r($album);
-		//die;
+		$album = $fbo->api_client->photos_createAlbum($name,$description,$location,$privacy,$uid);
 	}
 	catch(Exception $e) {
 		disp("Failed to create album $album", 1);

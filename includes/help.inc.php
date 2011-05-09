@@ -15,13 +15,8 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
 
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name. [Default]
-            2: Use the top level directory input as album name. Create caption based on subdirectories & image name. [Default with Album name set]
-            h: Display detailed information about how each of the modes works, with examples.		
-
-  -n    Album name. Sets mode to 2 and uploads all images to specified album.
-
-  -p    Page. Upload photos as fan page you manage. php_batch_uploaded must be authorized to manage pages:
-            http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=manage_pages
+            2: Use the top level directory input as album name. Create caption based on subdirectories & image name. [Default with Album Name set, -n]
+            h: Display detailed information about how each of the modes works, with examples.
 
   -v    Script verbosity.
             0: Display nothing, not even warnings or fatal errors.
@@ -34,11 +29,23 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
 
   -nr    Disable recursion. Only upload images in the specified folders.
 
+Album Options
+  -n    Album name. Sets mode to 2 and uploads all images to specified album.
+
+  -d    Album Description.
+
+  -l    Album Location.
+
+  -p    Privacy settings. Options: 'friends', 'friends-of-friends', 'networks', or 'everyone'. 
+			Default: 'friends' (Can be changed in config.inc.php)
+
+  -u    UID of Fan Page. Upload photos as fan page you manage. php_batch_uploaded must be authorized to manage pages:
+            http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=manage_pages
+
+Image Quality     
   -hd    Upload photos in high quality (2000x2000). This enables "Download in High Resolution" link when viewing photos.
   			To set HD as default, edit config.inc.php and change \$defaultSD=false.
   -sd    Upload photos in standard quality (720x720). If \$defaultSD=false, force uploading of images in standard quality.
-
-  directories  Directories passed to script. These are the folders that are uploaded to Facebook.
 
 EOF;
 	

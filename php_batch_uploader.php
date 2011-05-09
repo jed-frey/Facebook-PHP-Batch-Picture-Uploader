@@ -1,4 +1,4 @@
-//!/usr/bin/env php
+#!/usr/bin/env php
 <?php
 ////////
 // Here Be Dragons. All configuration is in config.inc.php
@@ -54,7 +54,24 @@ $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 // Set the upload mode - Default 1.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
 $albumName = (array_key_exists("n", $options)) ? $options["n"] : NULL;
+$location = (array_key_exists("l", $options)) ? $options["l"] : NULL;
+$description = (array_key_exists("d", $options)) ? $options["d"] : NULL;
 $no_recurse = (array_key_exists("nr", $options)) ? $options["nr"] : FALSE;
+
+if (array_key_exists("p", $options)) {
+	switch ($options["p"]) {
+			case "friends":
+			case "friends-of-friends":
+			case "networks":
+			case "everyone":
+			$privacy=$options["p"];
+			break;
+		default:
+			$privacy="friends";
+	}
+}
+
+
 if ($defaultSD==true) {
 	$photoSize = (array_key_exists("hd", $options)) ? $photoSizeHD : $photoSizeSD;
 } else {
@@ -90,7 +107,7 @@ try {
 	disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at:\n\t{$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthoize it at\n\t {$urlAccess}", 1);
 }
 // If the user opts to upload for another page, use that uid instead.
-$uid = (array_key_exists("p", $options)) ? $options["p"] : $uid;
+$uid = (array_key_exists("u", $options)) ? $options["u"] : $uid;
 // Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one folder to upload.", 1);
 // For each input directory.
