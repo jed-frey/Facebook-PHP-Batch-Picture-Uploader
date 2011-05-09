@@ -1,51 +1,46 @@
 Requirements: 
-	php5 (http://php.net)
-	*NIX like OS (Linux, OS X, etc). Windows might work but will not been tested.
-	Graphics Magick (http://www.graphicsmagick.org/) 
-		or
-	ImageMagick (http://www.imagemagick.org/)
-		apt-get install graphicsmagick | apt-get install imagemagick - Debian or Ubuntu
-		ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed http://www.imagemagick.org/script/binary-releases.php#macosx
-	Some command line knowledge.
-	
+    php5 (http://php.net)
+    *NIX like OS (Linux, OS X, etc). Windows might work but will not been tested.
+    Graphics Magick (http://www.graphicsmagick.org/) 
+        or
+    ImageMagick (http://www.imagemagick.org/)
+        apt-get install graphicsmagick | apt-get install imagemagick - Debian or Ubuntu
+        ports install graphicsmagick | ports install imagemagick - OS X with MacPorts installed http://www.imagemagick.org/script/binary-releases.php#macosx
+    Some command line knowledge.
+    
 Installation:
-	Move the php_batch_uploader folder to anywhere you wish.
-	0) Download php_batch_uploader
-		a) Latest version, master will always be 'operational' "git clone git://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader.git php_batch_uploader"
-		b) Latest release. None yet.
-	1) Open terminal window and change to php_batch_uploader folder.
-	2) Download the latest version of the Facebook PHP client library: 
-		./getFacebookPHPlibrary.sh
-	3a) Run the script directly. You may have to edit the first line to point to your php install. Use 'which php'
-		./php_batch_uploader ~/Pictures/
-	3b) Run the script through php. 
-		php php_batch_uploader ~/Pictures/
-	3c) Add the php_batch_uploader directory to your PATH and run.
-			# In the php_batch_uploader directory.
-			PATH=`pwd`:$PATH
-			cd ~/Pictures;php_batch_uploader ./
+    Move the php_batch_uploader folder to anywhere you wish.
+    0) Download php_batch_uploader
+        a) Latest version, master will always be 'operational' "git clone git://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader.git php_batch_uploader"
+    1) Open terminal window and change to php_batch_uploader folder.
+    3a) Run the script directly.
+        ./php_batch_uploader ~/Pictures/
+    3b) Run the script through php. 
+        php php_batch_uploader ~/Pictures/
+    3c) Add the php_batch_uploader directory to your PATH and run.
+            # In the php_batch_uploader directory.
+            PATH=`pwd`:$PATH
+            cd ~/Pictures;php_batch_uploader ./
 ----------------------------------------------------------------------------------------
-Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album name] [-nr] [-sd/-hd] directories
+Usage:  php_batch_uploader [-m mode] [-v verbosity] [-nr] [-n album name] [-nr] [-sd/-hd] directories
         php_batch_uploader -a auth
 
   -a    Facebook Authentication Code. Must be used before the script can upload anything.
-            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=7c984a9708b1a9f0eb0880017560e840
+            Visit http://www.facebook.com/code_gen.php?v=1.0&api_key=$key
             to authorize php_batch_uploader and generate code.
 
             To authorize direct uploading of pictures, you have to authorize php_batch_uploader direct upload access. This can be granted here:
-            http://www.facebook.com/authorize.php?v=1.0&api_key=7c984a9708b1a9f0eb0880017560e840&ext_perm=photo_upload 
+            http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=photo_upload 
 
   -m    Upload Mode.
             1: Upload each directory & subdirectory as album name. Caption based on image name. [Default]
-            2: Use the top level directory input as album name. Create caption based on subdirectories & image name. [Default with Album name set]
-            h: Display detailed information about how each of the modes works, with examples.		
-
-  -n    Album name. Sets mode to 2 and uploads all images to specified album.
+            2: Use the top level directory input as album name. Create caption based on subdirectories & image name. [Default with Album Name set, -n]
+            h: Display detailed information about how each of the modes works, with examples.
 
   -v    Script verbosity.
             0: Display nothing, not even warnings or fatal errors.
             1: Display only errors which cause the script to exit.
-            2: Display errors and warnings. [Default]
+            2: Display errors, warnings and minimal script progress [Default]
             3: Display everything w/time stamp when event occurred.
             4: Display everything w/time stamp since last message.
             5: Debug w/time stamp when event occurred.
@@ -53,11 +48,22 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
 
   -nr    Disable recursion. Only upload images in the specified folders.
 
-  -hd    Upload photos in high quality (2000x2000). This enables "Download in High Resolution" link when viewing photos.
-  			To set HD as default, edit config.inc.php and change $defaultSD=false.
-  -sd    Upload photos in standard quality (720x720). If $defaultSD=false, force uploading of images in standard quality.
+Album Options
+  -n    Album name. Sets mode to 2 and uploads all images to specified album.
 
-  directories  Directories passed to script. These are the folders that are uploaded to Facebook.
+  -d    Album Description.
+
+  -l    Album Location.
+
+  -p    Privacy settings. Options: 'friends', 'friends-of-friends', 'networks', or 'everyone'. 
+            Default: 'friends' (Can be changed in config.inc.php)
+
+  -u    UID of Fan Page. Upload photos as fan page you manage. php_batch_uploaded must be authorized to manage pages:
+            http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=manage_pages
+
+Image Quality. To set HD as default, edit config.inc.php and change \$defaultSD=false.
+  -hd    Upload photos in high quality (2000x2000). This enables "Download in High Resolution" link when viewing photos.
+  -sd    Upload photos in standard quality (720x720). If \$defaultSD=false, force uploading of images in standard quality.
 ----------------------------------------------------------------------------------------
 Modes Explained:
     Each of the modes will recursively upload all images and folders in a given directory. 
@@ -96,9 +102,9 @@ Modes Explained:
         4) Album '2009' is created, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
         5) Album '2009' is used, images will be captioned with "Road Trips - Road Trip#
 
-	Mode 2 with album specified.
-		Called with "[php] php_batch_uploader -n "My Life" ~/pictures/2008 ~/pictures/2009"1) 
-		1) Album 'My Life' is created, images will be captioned with "Road Trips - Road Trip #"
+    Mode 2 with album specified.
+        Called with "[php] php_batch_uploader -n "My Life" ~/pictures/2008 ~/pictures/2009") 
+        1) Album 'My Life' is created, images will be captioned with "Road Trips - Road Trip #"
         2) Album 'My Life' is used, images will be captioned with "Road Trips - Vegas - Vegas #"
         3) Album 'My Life' is used, images will be captioned with "Road Trips - Grand Canyon - GC #"
         4) Album 'My Life' is used, images will be captioned with "New Years Eve - Down Town - Fireworks - FireWorks #"
