@@ -1562,14 +1562,14 @@ function toggleDisplay(id, type) {
                                       $description='',
                                       $location='',
                                       $visible='',
-                                      $uid=0) {
+                                      $uid='') {
+	
     return $this->call_method('facebook.photos.createAlbum',
         array('name' => $name,
               'description' => $description,
               'location' => $location,
               'visible' => $visible,
-			  'uid' => 100593883364113));
-              #'uid' => $this->get_uid($uid)));
+			  'uid' => $uid));
   }
 
   /**
@@ -1603,7 +1603,7 @@ function toggleDisplay(id, type) {
    *
    * @returns an array of album objects.
    */
-  public function &photos_getAlbums($uid, $aids) {
+  public function &photos_getAlbums($uid=null, $aids=null) {
     return $this->call_method('facebook.photos.getAlbums',
       array('uid' => $uid,
             'aids' => $aids));
@@ -1640,7 +1640,7 @@ function toggleDisplay(id, type) {
                                      array('aid' => $aid,
                                            'caption' => $caption,
                                            'uid' => $uid),
-                                     $file);
+                                     		$file);
   }
 
 
@@ -3010,7 +3010,6 @@ function toggleDisplay(id, type) {
       $batch_item = array('m' => $method, 'p' => $params, 'r' => & $result);
       $this->batch_queue[] = $batch_item;
     }
-
     return $result;
   }
 

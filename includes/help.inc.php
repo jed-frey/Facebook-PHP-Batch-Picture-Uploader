@@ -20,6 +20,9 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-r recursive] [-n album nam
 
   -n    Album name. Sets mode to 2 and uploads all images to specified album.
 
+  -p    Page. Upload photos as fan page you manage. php_batch_uploaded must be authorized to manage pages:
+            http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=manage_pages
+
   -v    Script verbosity.
             0: Display nothing, not even warnings or fatal errors.
             1: Display only errors which cause the script to exit.

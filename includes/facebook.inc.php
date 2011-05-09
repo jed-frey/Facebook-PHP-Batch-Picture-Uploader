@@ -25,10 +25,10 @@ function showAuth() {
 
 # getAlbums - Get all current facebook albums
 function createAlbum($name) {
-	global $fbo;
+	global $fbo, $uid;
 	disp("Creating album: $name", 5);
 	try {
-		$album = $fbo->api_client->photos_createAlbum($name);
+		$album = $fbo->api_client->photos_createAlbum($name,'','','',$uid);
 		print_r($album);
 		//die;
 	}

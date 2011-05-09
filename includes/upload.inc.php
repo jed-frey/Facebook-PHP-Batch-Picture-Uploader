@@ -18,7 +18,7 @@ function waitToProcess($procs) {
 }
 // Upload Images into Image Albums.
 function uploadImages($images, $imageAlbums) {
-	global $fbo, $key;
+	global $fbo, $key, $uid;
 	$albumImages = getAlbumImages($imageAlbums);
 	$c = count($images);
 	$a = 0;
@@ -60,7 +60,7 @@ function uploadImages($images, $imageAlbums) {
 				waitToProcess($imagesToUpload[$i]["process"]);
 				disp("Finished Processing.", 5);
 				try {
-					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"],100593883364113);
+					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"],$uid);
 					$imageAlbums["size"][$uploadAlbumIdx]++;
 					$imagesToUpload[$i]["uploaded"] = true;
 					disp("Uploaded: " . $imagesToUpload[$i]["image"], 3);
