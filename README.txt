@@ -57,6 +57,7 @@ Album Options
 
   -p    Privacy settings. Options: 'friends', 'friends-of-friends', 'networks', or 'everyone'. 
             Default: 'friends' (Can be changed in config.inc.php)
+            * Does not work with Fan Pages
 
   -u    UID of Fan Page. Upload photos as fan page you manage. php_batch_uploaded must be authorized to manage pages:
             http://www.facebook.com/authorize.php?v=1.0&api_key=$key&ext_perm=manage_pages
