@@ -6,8 +6,8 @@ $photoSizeHD   = 2000;  // Resize to max facebook photo size. Currently 720x720 
 $albumLimit    = 200;   // Limit the number of photos per album to this. Currently 200 in facebook.
 $photoQuality  = 80;    // JPEG Quality to resize with.
 $converterPath = NULL;  // To permanently change the image converter, set it here, otherwise use -c on the command line to set it.
+$batchSize     = 5;     // Number of images to convert at once. Too few and your CPU is idle while it is uploading. Too many and your CPU is overloaded.
 $privacy       = "friends"; // Default privacy settings.
-    
 // These shouldn't need edited and changed unless you want to use them with your own app.
 // Key and Secret for php_batch_uploader.
 $app_id="180748208632384";

@@ -26,25 +26,26 @@ function waitToProcess($proc) {
 }
 // Upload Images into Image Albums.
 function uploadImages($images, $imageAlbums) {
-	global $fbo, $key, $uid;
+	global $fbo, $key, $uid, $batchSize;
 	$albumImages = getAlbumImages($imageAlbums);
 	$c = count($images);
-	$a = 0;
-	$b = 0;
-	$batchSize = 1;
+	$a = 0; $b = 0;
 	$md5s=array();
+	// Loop through all the images. Skip by batch size.
 	for ($a = 0;$a < $c;$a+=$batchSize) {
-		$imagesToUpload = array();
+		$imagesToUpload = array(); // empty the array for images to upload.
+		// For for the batch size while $b is less than the batch size OR a + b is less than the total number of images.
 		for ($b = 0;$b < $batchSize && ($a + $b) < $c;$b++) {
-			$z = $a + $b;
-			$image = $images[$z];
-			$caption = getCaption($image);
-			$md5 = md5_file($image);
-			//
+			$z = $a + $b;         // Get the "real" image index number.
+			$image = $images[$z]; // Pull out the image to manipulate
+			$caption = getCaption($image); // Get the caption of the image
+			$md5 = md5_file($image); // Get the MD5 of the image.
+			// Check for duplicate images.
 			if (array_key_exists("md5", $albumImages) && array_search($md5, $albumImages["md5"])!==false) {
 				disp("Skipping: $image already uploaded (MD5 Check)", 3);
 				continue;
 			}
+			// Check for duplicate images in the queue.
 			if (array_search($md5, $md5s)!==false) {
 				disp("Skipping: Identical image to $image already queued (MD5 Check)", 3);
 				continue;
@@ -73,15 +74,12 @@ function uploadImages($images, $imageAlbums) {
 				}
 				disp("Finished Processing.", 5);
 				try {
-					continue;
-					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"
-], $uid);
+					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"],getUploadAID($imageAlbums, $uploadAlbumIdx),$imagesToUpload[$i]["caption"], $uid);
 					$imageAlbums["size"][$uploadAlbumIdx]++;
 					$imagesToUpload[$i]["uploaded"] = true;
 					disp("Uploaded: " . $imagesToUpload[$i]["image"], 3);
 					$j++;
-				}
-				catch(Exception $e) {
+				} catch(Exception $e) {
 					disp($e->getCode() . " " . $e->getMessage(), 5);
 					switch ($e->getCode()) {
 						case 1:
@@ -122,31 +120,38 @@ http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload
 		}
 	}
 }
+// Get the Album ID to upload images to.
 function getUploadAID(&$imageAlbums, &$uploadAlbumIdx) {
 	static $uploadAlbumIndex;
-	// If you can't upload or the image album has more than 200 photos.
 	if (is_array($imageAlbums)) {
 		$c = count($imageAlbums["aid"]);
-		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {			
+		// Loop through all of the albums and see if they have less than 200 pictures.
+		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {	
+			// If you can't upload or the image album has more than 200 photos.		
 			if ($imageAlbums["size"][$uploadAlbumIdx] < 200) {
 				return $imageAlbums["aid"][$uploadAlbumIdx];
 			}
 		}
 	}
+	// Generate a new album name. "Album #n+1"
 	$newAlbumName = genAlbumName(end($imageAlbums["name"]));
+	// Create the album name.
 	$newAlbum = createAlbum($newAlbumName);
+	// Add the new album to the array of current image albums.
 	foreach($newAlbum as $key => $value) {
 		$imageAlbums[$key][] = $value;
 	}
-	$uploadAlbumIdx = count($imageAlbums["name"]) - 1;
-	return $imageAlbums["aid"][$uploadAlbumIdx];
+	// Return the AID.
+	return $imageAlbums["aid"][count($imageAlbums["aid"]) - 1];
 }
+// Get all of the images for an array of albums.
+// Groups images that are in "Album", "Album #2", "Album #3", etc.
 function getAlbumImages($albums) {
 	global $fbo;
 	$i = 0;
+	$allAlbumPictures=array();
 	foreach($albums["aid"] as $aid) {
-		$allAlbumPictures[$i] = &$fbo->api_client->photos_get("", $aid, "");
-		$i++;
+		$allAlbumPictures[] = &$fbo->api_client->photos_get("", $aid, "");
 	}
 	// Merge all of the album pictures into one picture array.
 	$albumImages = array();
@@ -167,20 +172,19 @@ function getAlbumImages($albums) {
 	}
 	return arrayMutate($albumImages);
 }
-// Get the album ID if the album exists, else create the album and return the ID.
+// Get all of the albums associated with a base album image name.
 function getImageAlbums($album_name) {
 	global $albums, $fbo, $uid;
 	// Get a list of user albums
 	$albums = getAlbums();
 	$albums2 = arrayMutate($albums);
-	if ($idx[] = array_search($album_name, $albums2["name"])) {
+	if ($idx = array_search($album_name, $albums2["name"])) {
+		$imageAlbums[]=$albums[$idx];
 		disp("Found $album_name", 5);
-		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
-			$idx[] = $idx_tmp;
+		// If "Album Name #X" is found in the full list of albums, add that to the list.
+		for ($i = 2;$idx = array_search("$album_name #$i", $albums2["name"]);$i++) {
+			$imageAlbums[]=$albums[$idx];
 			disp("Found $album_name #$i", 5);
-		}
-		foreach($idx as $i) {
-			$imageAlbums[] = $albums[$i];
 		}
 	} else {
 		disp("$album_name not found. Creating.", 2);
@@ -222,14 +226,12 @@ function genAlbumName($baseAlbumName) {
 // Input: $image - Image file to generate caption for.
 // Output: Caption of image file.
 function getCaption($image) {
-	global $root_dir, $mode;
+	global $root_dir, $mode, $glue;
 	$root_dir = substr($root_dir, -1) == "/" ? $root_dir : $root_dir . "/";
 	if ($mode == 1) {
 		// In Mode 1 (where each (sub)directory gets its own album, just use the file name
 		$caption = pathinfo($image, PATHINFO_FILENAME);
 	} elseif ($mode == 2) {
-		// Define the glue for the caption.
-		$glue = " - ";
 		// Replace the root directory with nothing.
 		$dir_structure = explode(DIRECTORY_SEPARATOR, str_replace($root_dir, "", $image));
 		// Generate a caption based on the folder's relative

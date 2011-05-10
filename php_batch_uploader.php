@@ -53,11 +53,12 @@ Copyright: Copyright (C) 2011 Jedediah Frey <php_batch_uploader@exstatic.org>\n\
 $verbosity = array_key_exists("v", $options) ? intval($options["v"]) : 2;
 // Set the upload mode - Default 1.
 $mode = (array_key_exists("m", $options)) ? $options["m"] : 1;
-$albumName = (array_key_exists("n", $options)) ? $options["n"] : NULL;
-$location = (array_key_exists("l", $options)) ? $options["l"] : NULL;
+$albumName   = (array_key_exists("n", $options)) ? $options["n"] : NULL;
+$location    = (array_key_exists("l", $options)) ? $options["l"] : NULL;
 $description = (array_key_exists("d", $options)) ? $options["d"] : NULL;
-$no_recurse = (array_key_exists("nr", $options)) ? $options["nr"] : FALSE;
-
+$no_recurse  = (array_key_exists("nr", $options)) ? $options["nr"] : FALSE;
+$glue        = (array_key_exists("g", $options)) ? $options["g"] : " - "; // Glue to separate file names in mode 2.
+// Set the privacy settings for newly created albums.
 if (array_key_exists("p", $options)) {
 	switch ($options["p"]) {
 			case "friends":
@@ -67,16 +68,17 @@ if (array_key_exists("p", $options)) {
 			$privacy=$options["p"];
 			break;
 		default:
-			$privacy="friends";
+			// Just use the default.
+			disp("Unknown privacy option: ".$options["p"],2);
 	}
 }
-
-
+// If defaultSD is set to true in the config. Determine
 if ($defaultSD==true) {
 	$photoSize = (array_key_exists("hd", $options)) ? $photoSizeHD : $photoSizeSD;
 } else {
 	$photoSize = (array_key_exists("sd", $options)) ? $photoSizeSD : $photoSizeHD;
 }
+// Get the mode.
 if ($mode != 2 && $mode != 1) disp("Invalid Mode: $mode", 1);
 // Get the image converter to use.
 getConverter((array_key_exists("c", $options)) ? $options["c"] : $converterPath);
@@ -87,7 +89,6 @@ $auth = NULL;
 if (array_key_exists("a", $options)) {
 	getFacebookAuthorization($options["a"]);
 }
-
 // Get saved authorization data.
 disp("Loading session data. ", 5);
 $auth = is_array($auth) ? $auth : unserialize(file_get_contents(getenv('HOME') . "/.facebook_auth"));
