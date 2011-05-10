@@ -177,9 +177,9 @@ function getImageAlbums($album_name) {
 	$albums2 = arrayMutate($albums);
 	if ($idx[] = array_search($album_name, $albums2["name"])) {
 		disp("Found $album_name", 5);
-		for ($i = 2;$idx_tmp = array_search("$album_name //$i", $albums2["name"]);$i++) {
+		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
 			$idx[] = $idx_tmp;
-			disp("Found $album_name //$i", 5);
+			disp("Found $album_name #$i", 5);
 		}
 		foreach($idx as $i) {
 			$imageAlbums[] = $albums[$i];
@@ -208,13 +208,13 @@ function getAlbumBase($image) {
 // Input: $baseAlbumName - base name of album.
 // Output: return the newName.
 function genAlbumName($baseAlbumName) {
-	// Determine if the album name 'My Album //2' etc is in use.
-	if (preg_match('/([^//]+) //([\\d]+)/', $baseAlbumName, $regs)) {
+	// Determine if the album name 'My Album #2' etc is in use.
+	if (preg_match('/([^#]+) #([\\d]+)/', $baseAlbumName, $regs)) {
 		// If so, increment the number by 1.
-		$newName = $regs[1] . " //" . (intval($regs[2]) + 1);
+		$newName = $regs[1] . " #" . (intval($regs[2]) + 1);
 	} else {
-		// Else, album name is //2.
-		$newName = $baseAlbumName . " //2";
+		// Else, album name is #2.
+		$newName = $baseAlbumName . " #2";
 	}
 	disp("Generated new album name $newName from $baseAlbumName", 5);
 	// Return the new name
