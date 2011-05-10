@@ -111,12 +111,13 @@ $uid = (array_key_exists("u", $options)) ? $options["u"] : $uid;
 // Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one folder to upload.", 1);
 // For each input directory.
+echo max(array_keys($options))."\n";
 for ($i = 1;$i <= max(array_keys($options));$i++) {
 	// Get full path of the directory w/ trailing slash.
 	$dir = realpath($options[$i]);
 	// Make sure that it is actually a directory and not a file.
 	if (!is_dir($dir)) {
-		disp("Warning: $dir is not a directory. Skipping.", 2);
+		disp("Warning: \"$options[$i]\" is not a directory. Skipping.", 2);
 		continue;
 	}
 	// Set the directory as the root directory so that everything is calculated relative to that.

@@ -6,7 +6,6 @@ function waitToProcess($proc) {
 	$r=proc_get_status($proc);
 	for ($failures=0;$failures<$allowedFailures;$failures++) {
 		while ($r["running"]) $r=proc_get_status($proc);
-		$r["termsig"]=4;
 		// Break if the process died normally.
 		if ($r["termsig"]==0) break;
 		// If the process was killed. Fire it up again.
@@ -72,7 +71,6 @@ function uploadImages($images, $imageAlbums) {
 					$imagesToUpload[$i]["uploaded"]=true;
 					continue;
 				}
-				die;
 				disp("Finished Processing.", 5);
 				try {
 					continue;
