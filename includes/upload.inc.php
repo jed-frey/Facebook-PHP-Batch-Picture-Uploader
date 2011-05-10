@@ -1,20 +1,29 @@
 <?php
-# Wait for all thumbnail processing threads to finish.
-function waitToProcess($procs) {
-	if (!is_array($procs)) $procs = array($procs);
-	do {
-		# Set the count of running processes to 0.
-		$running = 0;
-		# For each process
-		foreach($procs as $proc) {
-			# Get process status
-			$r = proc_get_status($proc);
-			# Increment the number of running threads.
-			if ($r["running"]) $running++;
-		}
+// Wait for all thumbnail processing threads to finish.
+// Restart any threads that may have been killed. (Used to work around Dreamhost shared server processes).
+function waitToProcess($proc) {
+	$allowedFailures=5;
+	$r=proc_get_status($proc);
+	for ($failures=0;$failures<$allowedFailures;$failures++) {
+		while ($r["running"]) $r=proc_get_status($proc);
+		$r["termsig"]=4;
+		// Break if the process died normally.
+		if ($r["termsig"]==0) break;
+		// If the process was killed. Fire it up again.
+		disp("Processed Killed", 7); // Throw a high level warning.
+		$descriptorspec = array(0 => array("file", "/dev/null", "r"), 1 => array("file", "/dev/null", "w"), 2 => array("file", "/dev/null", "a"));
+		// Reopen the process
+		$proc=proc_open($r["command"], $descriptorspec, $pipes);
+		// Get the process status.
+		$r=proc_get_status($proc);
 	}
-	while ($running != 0); # While the number running process isn't 0, keep checking.
-	
+	// If we've failed the maximum number of times, give up. 
+	// There is probably something wrong with the image or it's too large to be converted and keeps getting killed.
+	if ($failures==$allowedFailures) {
+		disp("Process killed too many times. Try executing it via command line and see what the issue is.", 5);
+		return 1;
+	}
+	return 0;
 }
 // Upload Images into Image Albums.
 function uploadImages($images, $imageAlbums) {
@@ -23,7 +32,7 @@ function uploadImages($images, $imageAlbums) {
 	$c = count($images);
 	$a = 0;
 	$b = 0;
-	$batchSize = 20;
+	$batchSize = 1;
 	$md5s=array();
 	for ($a = 0;$a < $c;$a+=$batchSize) {
 		$imagesToUpload = array();
@@ -57,10 +66,18 @@ function uploadImages($images, $imageAlbums) {
 			for ($i = 0;$i < count($imagesToUpload);$i++) {
 				if ($imagesToUpload[$i]["uploaded"]) continue;
 				disp("Waiting for processing to finish on: " . $imagesToUpload[$i]["image"], 5);
-				waitToProcess($imagesToUpload[$i]["process"]);
+				// If the process continues to fail, just mark as uploaded and move on.
+				if (waitToProcess($imagesToUpload[$i]["process"])) {
+					disp("Image Conversion Failed, skipping: " . $imagesToUpload[$i]["image"], 2);
+					$imagesToUpload[$i]["uploaded"]=true;
+					continue;
+				}
+				die;
 				disp("Finished Processing.", 5);
 				try {
-					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"],$uid);
+					continue;
+					$fbo->api_client->photos_upload($imagesToUpload[$i]["thumb"], getUploadAID($imageAlbums, $uploadAlbumIdx), $imagesToUpload[$i]["caption"
+], $uid);
 					$imageAlbums["size"][$uploadAlbumIdx]++;
 					$imagesToUpload[$i]["uploaded"] = true;
 					disp("Uploaded: " . $imagesToUpload[$i]["image"], 3);
@@ -80,7 +97,8 @@ function uploadImages($images, $imageAlbums) {
 						case 104:
 						case 120:
 						case 200:
-							disp("Fatal error: " . $e->getMessage() . "\n Please submit a bug report: http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader", 1);
+							disp("Fatal error: " . $e->getMessage() . "\n Please submit a bug report: 
+http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader", 1);
 						break;
 						case 102:
 							disp("Could not login. Try creating a new auth code.", 1);
@@ -94,12 +112,15 @@ function uploadImages($images, $imageAlbums) {
 							$imagesToUpload[$i]["uploaded"] = true;
 						break;
 						case 325:
-							disp($e->getMessage() . ". Allow php_batch_uploader to upload files directly: http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload\n\n", 1);
+							disp($e->getMessage() . ". Allow php_batch_uploader to upload files directly: 
+http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload\n\n", 1);
 						break;
 					}
+					die;
 					$imagesToUpload[$i]["errors"]++;
 				}
 			}
+			# If all images have been uploaded, break out of the while loop.
 			if ($j == 0) break;
 		}
 	}
@@ -111,11 +132,15 @@ function getUploadAID(&$imageAlbums, &$uploadAlbumIdx) {
 	if (is_array($imageAlbums)) {
 		$c = count($imageAlbums["aid"]);
 		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {
-			if ($imageAlbums["can_upload"][$uploadAlbumIdx] && $imageAlbums["size"][$uploadAlbumIdx] < 200) {
+			// if ($imageAlbums["can_upload"][$uploadAlbumIdx] && $imageAlbums["size"][$uploadAlbumIdx] < 200) {			
+			if ($imageAlbums["size"][$uploadAlbumIdx] < 200) {
 				return $imageAlbums["aid"][$uploadAlbumIdx];
 			}
 		}
 	}
+	print_r($imageAlbums);
+	echo $uploadAlbumIdx."\n";
+	die;
 	$newAlbumName = genAlbumName(end($imageAlbums["name"]));
 	$newAlbum = createAlbum($newAlbumName);
 	foreach($newAlbum as $key => $value) {
