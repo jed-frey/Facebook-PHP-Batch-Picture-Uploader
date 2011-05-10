@@ -41,7 +41,7 @@ function uploadImages($images, $imageAlbums) {
 			$image = $images[$z];
 			$caption = getCaption($image);
 			$md5 = md5_file($image);
-			#
+			//
 			if (array_key_exists("md5", $albumImages) && array_search($md5, $albumImages["md5"])!==false) {
 				disp("Skipping: $image already uploaded (MD5 Check)", 3);
 				continue;
@@ -119,14 +119,14 @@ http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload
 					$imagesToUpload[$i]["errors"]++;
 				}
 			}
-			# If all images have been uploaded, break out of the while loop.
+			// If all images have been uploaded, break out of the while loop.
 			if ($j == 0) break;
 		}
 	}
 }
 function getUploadAID(&$imageAlbums, &$uploadAlbumIdx) {
 	static $uploadAlbumIndex;
-	# If you can't upload or the image album has more than 200 photos.
+	// If you can't upload or the image album has more than 200 photos.
 	if (is_array($imageAlbums)) {
 		$c = count($imageAlbums["aid"]);
 		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {			
@@ -147,37 +147,39 @@ function getAlbumImages($albums) {
 	global $fbo;
 	$i = 0;
 	foreach($albums["aid"] as $aid) {
-		$allAlbumPictures[$i] = & $fbo->api_client->photos_get("", $aid, "");
+		$allAlbumPictures[$i] = &$fbo->api_client->photos_get("", $aid, "");
 		$i++;
 	}
-	# Merge all of the album pictures into one picture array.
+	// Merge all of the album pictures into one picture array.
 	$albumImages = array();
 	foreach($allAlbumPictures as $albumPictures) {
 		if (is_array($albumPictures)) {
+			// For each of the album pictures found
 			foreach($albumPictures as $picture) {
+				// Grab out the md5 so we don't do duplicate uploads.
 				if (preg_match("/[0-9a-f]{32}/i",$picture["caption"],$md5)) {
 					$picture["md5"]=$md5[0];
 				} else {
 					$picture["md5"]=null;
 				}
+				// Add the picture to the stockpile.
 				$albumImages[] = $picture;
 			}
 		}
 	}
-	
 	return arrayMutate($albumImages);
 }
-# Get the album ID if the album exists, else create the album and return the ID.
+// Get the album ID if the album exists, else create the album and return the ID.
 function getImageAlbums($album_name) {
 	global $albums, $fbo, $uid;
-	# Get a list of user albums
+	// Get a list of user albums
 	$albums = getAlbums();
 	$albums2 = arrayMutate($albums);
 	if ($idx[] = array_search($album_name, $albums2["name"])) {
 		disp("Found $album_name", 5);
-		for ($i = 2;$idx_tmp = array_search("$album_name #$i", $albums2["name"]);$i++) {
+		for ($i = 2;$idx_tmp = array_search("$album_name //$i", $albums2["name"]);$i++) {
 			$idx[] = $idx_tmp;
-			disp("Found $album_name #$i", 5);
+			disp("Found $album_name //$i", 5);
 		}
 		foreach($idx as $i) {
 			$imageAlbums[] = $albums[$i];
@@ -189,8 +191,8 @@ function getImageAlbums($album_name) {
 	$imageAlbums = arrayMutate($imageAlbums);
 	return $imageAlbums;
 }
-# getAlbumBase - Get the base name of an album based on the mode.
-# Input: $image - Image to get the album base for.
+// getAlbumBase - Get the base name of an album based on the mode.
+// Input: $image - Image to get the album base for.
 function getAlbumBase($image) {
 	global $root_dir, $mode, $albumName;
 	if ($albumName===NULL) {
@@ -202,42 +204,42 @@ function getAlbumBase($image) {
 	}
 	return $album_name;
 }
-# genAlbumName - Generate a new album name.
-# Input: $baseAlbumName - base name of album.
-# Output: return the newName.
+// genAlbumName - Generate a new album name.
+// Input: $baseAlbumName - base name of album.
+// Output: return the newName.
 function genAlbumName($baseAlbumName) {
-	// Determine if the album name 'My Album #2' etc is in use.
-	if (preg_match('/([^#]+) #([\\d]+)/', $baseAlbumName, $regs)) {
+	// Determine if the album name 'My Album //2' etc is in use.
+	if (preg_match('/([^//]+) //([\\d]+)/', $baseAlbumName, $regs)) {
 		// If so, increment the number by 1.
-		$newName = $regs[1] . " #" . (intval($regs[2]) + 1);
+		$newName = $regs[1] . " //" . (intval($regs[2]) + 1);
 	} else {
-		// Else, album name is #2.
-		$newName = $baseAlbumName . " #2";
+		// Else, album name is //2.
+		$newName = $baseAlbumName . " //2";
 	}
 	disp("Generated new album name $newName from $baseAlbumName", 5);
 	// Return the new name
 	return $newName;
 }
-# getCaption - Get the caption for the image based on the mode.
-# Input: $image - Image file to generate caption for.
-# Output: Caption of image file.
+// getCaption - Get the caption for the image based on the mode.
+// Input: $image - Image file to generate caption for.
+// Output: Caption of image file.
 function getCaption($image) {
 	global $root_dir, $mode;
 	$root_dir = substr($root_dir, -1) == "/" ? $root_dir : $root_dir . "/";
 	if ($mode == 1) {
-		# In Mode 1 (where each (sub)directory gets its own album, just use the file name
+		// In Mode 1 (where each (sub)directory gets its own album, just use the file name
 		$caption = pathinfo($image, PATHINFO_FILENAME);
 	} elseif ($mode == 2) {
-		# Define the glue for the caption.
+		// Define the glue for the caption.
 		$glue = " - ";
-		# Replace the root directory with nothing.
+		// Replace the root directory with nothing.
 		$dir_structure = explode(DIRECTORY_SEPARATOR, str_replace($root_dir, "", $image));
-		# Generate a caption based on the folder's relative
+		// Generate a caption based on the folder's relative
 		$caption = pathinfo(implode($glue, $dir_structure), PATHINFO_FILENAME);
 	} else {
 		disp("Invalid Mode", 1);
 	}
-	# Trim off excess white spaces.
+	// Trim off excess white spaces.
 	$caption = trim($caption);
 	disp("Got Caption: $caption for $image", 5);
 	return $caption;
