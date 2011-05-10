@@ -53,8 +53,8 @@ function arrayMutate($arrays) {
 function disp($message, $level) {
 	global $verbosity; # Get verbrosity level.
 	# If the level of the message is less than the vebrosity level, display the message.
-	# If verbrosity level >=4, display the duration
-	$message = (($verbosity >= 4 && $level <= $verbosity) ? " (" . getDuration($verbosity) . " s) " : "") . (($level <= $verbosity) ? $message : "");
+	# If verbrosity level >=3, display the duration
+	$message = (($verbosity >= 3 && $level <= $verbosity) ? " (" . getDuration($verbosity) . " s) " : "") . (($level <= $verbosity) ? $message : "");
 	echo empty($message) ? "" : $message . "\n";
 	if ($level <= 1) die("\n");
 }
@@ -62,13 +62,8 @@ function disp($message, $level) {
 # Input: verbrosity
 function getDuration($verbosity) {
 	global $start_time;
-	$elapsed = round(microtime(true) - ($start_time), 3);
-	# For verbrosity 3/5, just display time since the beginning. For vebrosity 4/6, show elapsed time between events.
+	$elapsed = sprintf("%5.3f",microtime(true) - ($start_time));
+	# For Odd verbrosity, just display time since the beginning. For Evens, show elapsed time between events.
 	if (($verbosity % 2) == 0) $start_time = microtime(true);
 	return $elapsed;
-}
-function pd($X = array()) {
-	print_r($X);
-	file_put_contents("test.txt", print_r($X, 1));
-	die;
 }
