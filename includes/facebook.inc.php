@@ -4,7 +4,6 @@ function getAlbums() {
 	global $fbo, $uid;
 	disp("Getting albums", 5);
 	# Create the album.
-	#$albums = $fbo->api_client->photos_getAlbums($fbo->api_client->users_getLoggedInUser(), "");
 	$albums = $fbo->api_client->photos_getAlbums($uid, "");
 	return $albums;
 }
@@ -34,7 +33,6 @@ function createAlbum($name) {
 		disp("Failed to create album $album", 1);
 	}
 	# Created albums do not have the following parameters.
-	$album["can_upload"] = 1;
 	$album["size"] = 0;
 	$album["type"] = "normal";
 	return $album;

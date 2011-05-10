@@ -13,6 +13,6 @@ $privacy       = "friends"; // Default privacy settings.
 $app_id="180748208632384";
 $key = "7c984a9708b1a9f0eb0880017560e840";
 $sec = "cfcec008079a87aace666875c0fcf3d9";
-$urlAccess = "https://www.facebook.com/dialog/oauth?client_id={$app_id}&redirect_uri=http://jedediahfrey.github.com/Facebook-PHP-Batch-Picture-Uploader/success.html&scope=user_photos";
+$urlAccess = "https://www.facebook.com/dialog/oauth?client_id={$app_id}&redirect_uri=http://jedediahfrey.github.com/Facebook-PHP-Batch-Picture-Uploader/success.html&scope=user_photos,offline_access,manage_pages";
 $urlAuth = "http://www.facebook.com/code_gen.php?v=1.0&api_key={$key}";
 $urlUpload = "http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload";

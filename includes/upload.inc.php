@@ -105,7 +105,6 @@ http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader", 1);
 						case 321:
 							disp($e->getMessage() . ". Should have been caught earlier.", 3);
 							$imageAlbums["size"][$uploadAlbumIdx] = 200;
-							$imageAlbums["can_upload"][$uploadAlbumIdx] = 0;
 						break;
 						case 324:
 							disp($e->getMessage() . ". Bad Graphics/ImageMagick output? Skipping " . $imagesToUpload[$i]["image"], 3);
@@ -127,20 +126,15 @@ http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload
 }
 function getUploadAID(&$imageAlbums, &$uploadAlbumIdx) {
 	static $uploadAlbumIndex;
-	$idx = array_search(1, $imageAlbums["can_upload"]);
 	# If you can't upload or the image album has more than 200 photos.
 	if (is_array($imageAlbums)) {
 		$c = count($imageAlbums["aid"]);
-		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {
-			// if ($imageAlbums["can_upload"][$uploadAlbumIdx] && $imageAlbums["size"][$uploadAlbumIdx] < 200) {			
+		for ($uploadAlbumIdx = 0;$uploadAlbumIdx < $c;$uploadAlbumIdx++) {			
 			if ($imageAlbums["size"][$uploadAlbumIdx] < 200) {
 				return $imageAlbums["aid"][$uploadAlbumIdx];
 			}
 		}
 	}
-	print_r($imageAlbums);
-	echo $uploadAlbumIdx."\n";
-	die;
 	$newAlbumName = genAlbumName(end($imageAlbums["name"]));
 	$newAlbum = createAlbum($newAlbumName);
 	foreach($newAlbum as $key => $value) {

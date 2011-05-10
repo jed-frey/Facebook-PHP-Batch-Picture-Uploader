@@ -19,7 +19,7 @@ Usage:  php_batch_uploader [-m mode] [-v verbosity] [-nr] [-n album name] [-nr] 
             h: Display detailed information about how each of the modes works, with examples.
 
   -v    Script verbosity.
-            0: Display nothing, not even warnings or fatal errors.
+            0: Display nothing, not even warnings or fatal errors. Script will run, then exit.
             1: Display only errors which cause the script to exit.
             2: Display errors, warnings and minimal script progress [Default]
             3: Display everything w/time stamp when event occurred.
