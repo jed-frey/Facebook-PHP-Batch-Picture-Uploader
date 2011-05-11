@@ -111,7 +111,6 @@ http://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader", 1);
 http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload\n\n", 1);
 						break;
 					}
-					die;
 					$imagesToUpload[$i]["errors"]++;
 				}
 			}
