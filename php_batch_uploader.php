@@ -57,6 +57,7 @@ $albumName   = (array_key_exists("n", $options)) ? $options["n"] : NULL;
 $location    = (array_key_exists("l", $options)) ? $options["l"] : NULL;
 $description = (array_key_exists("d", $options)) ? $options["d"] : NULL;
 $no_recurse  = (array_key_exists("nr", $options)) ? $options["nr"] : FALSE;
+$nohash  = (array_key_exists("nohash", $options)) ? TRUE : FALSE;
 $glue        = (array_key_exists("g", $options)) ? $options["g"] : " - "; // Glue to separate file names in mode 2.
 // Set the privacy settings for newly created albums.
 if (array_key_exists("p", $options)) {
@@ -112,7 +113,6 @@ $uid = (array_key_exists("u", $options)) ? $options["u"] : $uid;
 // Check if at least one folder was given
 if (!array_key_exists(1, $options)) disp("Must select at least one folder to upload.", 1);
 // For each input directory.
-echo max(array_keys($options))."\n";
 for ($i = 1;$i <= max(array_keys($options));$i++) {
 	// Get full path of the directory w/ trailing slash.
 	$dir = realpath($options[$i]);

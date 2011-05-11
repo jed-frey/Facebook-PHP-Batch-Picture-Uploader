@@ -26,7 +26,7 @@ function waitToProcess($proc) {
 }
 // Upload Images into Image Albums.
 function uploadImages($images, $imageAlbums) {
-	global $fbo, $key, $uid, $batchSize;
+	global $fbo, $key, $uid, $batchSize, $nohash;
 	$albumImages = getAlbumImages($imageAlbums);
 	$c = count($images);
 	$a = 0; $b = 0;
@@ -56,7 +56,7 @@ function uploadImages($images, $imageAlbums) {
 			$temp["caption"] = $caption;
 			$temp["process"] = $process;
 			$temp["thumb"] = $thumb;
-			$temp["caption"] = $caption."\n\n\n".$md5;
+			$temp["caption"] = $caption.($nohash?"":"\n\n\n".$md5);
 			$temp["uploaded"] = false;
 			$temp["errors"] = 0;
 			$imagesToUpload[] = $temp;
