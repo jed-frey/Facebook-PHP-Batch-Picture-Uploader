@@ -106,7 +106,7 @@ try {
 		disp("Warning: App not authorized to immediately publish photos. View the album after uploading to approve uploaded pictures.\n\nTo remove this warning and authorized direct uploads,\nvisit $urlUpload\n", 2);
 	}
 } catch(Exception $e) {
-	disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at:\n\t{$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthoize it at\n\t {$urlAccess}", 1);
+	disp("Invalid auth code or could not authorize session.\nPlease check your auth code or generate a new one at:\n\t{$urlAuth}\n\nIf you removed php_batch_uploader from your privacy settings, you will need to reauthorize it at\n\t {$urlAccess}", 1);
 }
 // If the user opts to upload for another page, use that uid instead.
 $uid = (array_key_exists("u", $options)) ? $options["u"] : $uid;
