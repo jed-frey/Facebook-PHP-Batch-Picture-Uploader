@@ -10,9 +10,9 @@ $batchSize     = 5;     // Number of images to convert at once. Too few and your
 $privacy       = "friends"; // Default privacy settings.
 // These shouldn't need edited and changed unless you want to use them with your own app.
 // Key and Secret for php_batch_uploader.
-$app_id="180748208632384";
-$key = "7c984a9708b1a9f0eb0880017560e840";
-$sec = "cfcec008079a87aace666875c0fcf3d9";
+$app_id="221615537869856";
+$key = "c6e96655073cb303448fcb5144d810c1";
+$sec = "89f60d87f2b73a762070399533630d3c";
 $urlAccess = "https://www.facebook.com/dialog/oauth?client_id={$app_id}&redirect_uri=http://jedediahfrey.github.com/Facebook-PHP-Batch-Picture-Uploader/success.html&scope=user_photos,offline_access,manage_pages";
 $urlAuth = "http://www.facebook.com/code_gen.php?v=1.0&api_key={$key}";
 $urlUpload = "http://www.facebook.com/authorize.php?v=1.0&api_key={$key}&ext_perm=photo_upload";
