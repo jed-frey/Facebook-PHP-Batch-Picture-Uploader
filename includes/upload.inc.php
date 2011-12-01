@@ -177,7 +177,7 @@ function getImageAlbums($album_name) {
 	// Get a list of user albums
 	$albums = getAlbums();
 	$albums2 = arrayMutate($albums);
-	if ($idx = array_search($album_name, $albums2["name"])) {
+	if (($idx = array_search($album_name, $albums2["name"]))!==false) {
 		$imageAlbums[]=$albums[$idx];
 		disp("Found $album_name", 5);
 		// If "Album Name #X" is found in the full list of albums, add that to the list.
@@ -186,6 +186,7 @@ function getImageAlbums($album_name) {
 			disp("Found $album_name #$i", 5);
 		}
 	} else {
+		die;
 		disp("$album_name not found. Creating.", 2);
 		$imageAlbums[0] = createAlbum($album_name);
 	}
