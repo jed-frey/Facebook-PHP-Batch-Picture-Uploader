@@ -186,7 +186,6 @@ function getImageAlbums($album_name) {
 			disp("Found $album_name #$i", 5);
 		}
 	} else {
-		die;
 		disp("$album_name not found. Creating.", 2);
 		$imageAlbums[0] = createAlbum($album_name);
 	}
