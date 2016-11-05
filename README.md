@@ -1,19 +1,19 @@
-Requirements: 
-    php5 (http://php.net)
-    *NIX like OS (Linux, OS X, etc). Windows might work but will not been tested.
-    Graphics Magick (http://www.graphicsmagick.org/) 
-        or
-    ImageMagick (http://www.imagemagick.org/)	
-        Debian or Ubuntu
-            apt-get install graphicsmagick | apt-get install imagemagick
-        OS X with MacPorts installed
-            ports install graphicsmagick | ports install imagemagick
-        OS X Binary Release
-            http://www.imagemagick.org/script/binary-releases.php#macosx
-    Some command line knowledge.
+# Archived for Posterity
+
+Facebook has changed their API multiple times since this was written. One upon a time it could dump a few thousand photos to facebook. Now, nothing.
+
+## Requirements: 
+
+- php5 (http://php.net)
+- *NIX like OS (Linux, OS X, etc). Windows might work but will not been tested.
+- Graphics Magick (http://www.graphicsmagick.org/) **or**
+- ImageMagick (http://www.imagemagick.org/)	
+- Some command line knowledge.
     
-Installation:
-    Move the php_batch_uploader folder to anywhere you wish.
+## Installation:
+
+Move the php_batch_uploader folder to anywhere you wish.
+    
     0) Download php_batch_uploader
         a) Latest version, master will always be 'operational' "git clone git://github.com/jedediahfrey/Facebook-PHP-Batch-Picture-Uploader.git php_batch_uploader"
     1) Open terminal window and change to php_batch_uploader folder.
@@ -25,6 +25,7 @@ Installation:
             # In the php_batch_uploader directory.
             PATH=`pwd`:$PATH
             cd ~/Pictures;php_batch_uploader ./
+```
 ----------------------------------------------------------------------------------------
 Usage:  php_batch_uploader [-m mode] [-v verbosity] [-nr] [-n album name] [-nr] [-sd/-hd] directories
         php_batch_uploader -a auth
@@ -135,3 +136,4 @@ Modes Explained:
             and a number starting at 2.
     "Spring Break" becomes "Spring Break #2" for photos 201-400 then "Spring Break #3" 
         for 401-600 so on and so forth.
+```
